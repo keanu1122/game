@@ -1,0 +1,3802 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Lost Relics: Running Quest — Fun Dumb Creations</title>
+<style>
+  :root {
+    --bg-outer: #0d071c;
+    --border-purple: #7c4dff;
+    --gold: #ffd740;
+    --gold-dark: #b8860b;
+    --panel-bg: rgba(22, 12, 48, 0.94);
+    --text-main: #fff9e6;
+    --text-sub: #cbb8ff;
+  }
+
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #1e1042 0%, var(--bg-outer) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+    color: var(--text-main);
+  }
+
+  /* Responsive 16:9 widescreen arcade stage container */
+  #stage {
+    position: relative;
+    width: min(100vw, 177.78vh);
+    height: min(100vh, 56.25vw);
+    aspect-ratio: 16 / 9;
+    box-shadow: 0 0 0 3px #2e1963, 0 0 40px rgba(124, 77, 255, 0.45);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #140b2e;
+    font-size: clamp(10px, 1.8vw, 16px);
+  }
+
+  canvas#game {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    touch-action: none;
+  }
+
+  /* Overlay UI Layer for Menus, Cutscene Controls, Map Cards & Quizzes */
+  #ui {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.1em;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  #ui.active {
+    display: flex;
+    pointer-events: auto;
+  }
+
+  #ui.dim {
+    background: rgba(13, 7, 30, 0.78);
+    backdrop-filter: blur(2px);
+  }
+
+  /* Ornate Stone & Gem Pixel-Art Modal Frame */
+  .stone-panel {
+    position: relative;
+    background: linear-gradient(180deg, #271754 0%, #170d36 100%);
+    border: 4px solid #a78bfa;
+    box-shadow:
+      inset 0 0 0 3px #3b237a,
+      0 0 0 4px #0e0722,
+      0 14px 32px rgba(0, 0, 0, 0.75);
+    border-radius: 12px;
+    padding: 1.15em 1.7em;
+    text-align: center;
+    max-width: min(90%, 49em);
+    max-height: 93%;
+    overflow-y: auto;
+    animation: popIn 0.2s ease-out;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.93); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .stone-panel h1 {
+    margin: 0;
+    font-size: 3em;
+    line-height: 0.96;
+    letter-spacing: 0.04em;
+    color: var(--gold);
+    text-shadow: 0 3px 0 #b45309, 3px 4px 0 #6d28d9, 0 0 18px rgba(255, 215, 64, 0.45);
+  }
+
+  .stone-panel h2 {
+    margin: 0.15em 0 0.45em;
+    font-size: 1.5em;
+    color: var(--gold);
+    text-shadow: 2px 2px 0 #3b0764;
+  }
+
+  .subtitle {
+    display: inline-block;
+    margin-top: 0.35em;
+    letter-spacing: 0.22em;
+    font-size: 0.82em;
+    font-weight: bold;
+    color: #e9d5ff;
+    background: rgba(124, 58, 237, 0.35);
+    border: 1px solid #8b5cf6;
+    padding: 0.22em 0.8em;
+    border-radius: 6px;
+  }
+
+  .stone-panel p {
+    margin: 0.45em 0;
+    line-height: 1.42;
+    font-size: 0.94em;
+    color: #f3e8ff;
+  }
+
+  .badge-pill {
+    display: inline-block;
+    background: #321c70;
+    border: 2px solid #ffd740;
+    color: #ffd740;
+    font-weight: bold;
+    padding: 0.22em 0.8em;
+    border-radius: 999px;
+    font-size: 0.86em;
+    margin: 0.2em 0;
+  }
+
+  /* Retro Beveled Arcade Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45em;
+    margin: 0.32em;
+    min-width: 13em;
+    padding: 0.58em 1.1em;
+    background: linear-gradient(180deg, #ffe57f 0%, #ffc400 100%);
+    color: #1c0f42;
+    border: 2px solid #fff59d;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95em;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #9a6700, 0 6px 12px rgba(0, 0, 0, 0.45);
+    transition: transform 0.08s ease, filter 0.12s ease;
+  }
+
+  .btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+
+  .btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #9a6700;
+  }
+
+  .btn.sec {
+    background: linear-gradient(180deg, #8b5cf6 0%, #6d28d9 100%);
+    color: #ffffff;
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 0 #3b0764, 0 6px 12px rgba(0, 0, 0, 0.45);
+  }
+
+  .btn.sec:active {
+    box-shadow: 0 1px 0 #3b0764;
+  }
+
+  .btn.wide {
+    display: flex;
+    width: min(100%, 22em);
+    margin: 0.4em auto;
+  }
+
+  .btn.quiz-opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin: 0.42em 0;
+    padding: 0.65em 1em;
+    font-size: 0.92em;
+  }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.42em;
+    margin-top: 0.75em;
+  }
+
+  .menu-grid .span-2 {
+    grid-column: span 2;
+  }
+
+  /* Explorer Cards */
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9em;
+    margin: 0.65em 0;
+  }
+
+  .char-card {
+    background: rgba(17, 9, 41, 0.88);
+    border: 2px solid #6d28d9;
+    border-radius: 10px;
+    padding: 0.7em;
+    text-align: center;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+
+  .char-card.selected {
+    border-color: #ffd740;
+    box-shadow: 0 0 16px rgba(255, 215, 64, 0.35);
+  }
+
+  .char-card canvas {
+    display: block;
+    margin: 0 auto 0.35em;
+    background: radial-gradient(circle, #311b70 0%, #160c36 75%);
+    border: 2px solid #4c1d95;
+    border-radius: 8px;
+    image-rendering: pixelated;
+  }
+
+  .stat-row {
+    font-size: 0.82em;
+    color: #ffd740;
+    margin: 0.22em 0;
+    font-weight: bold;
+  }
+
+  /* Controls Grid in How-To-Play */
+  .ctrl-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45em;
+    text-align: left;
+    margin: 0.6em 0;
+  }
+
+  .ctrl-item {
+    background: rgba(16, 9, 38, 0.85);
+    border: 1px solid #5b21b6;
+    border-radius: 8px;
+    padding: 0.45em 0.65em;
+    font-size: 0.84em;
+  }
+
+  .ctrl-key {
+    color: #ffd740;
+    font-weight: 900;
+  }
+
+  /* Floating Corner HUD Controls */
+  #corner-controls {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 8;
+  }
+
+  .hud-btn {
+    pointer-events: auto;
+    position: absolute;
+    background: rgba(24, 13, 54, 0.88);
+    color: #ffd740;
+    border: 2px solid #8b5cf6;
+    border-radius: 8px;
+    padding: 0.38em 0.78em;
+    font-family: inherit;
+    font-size: 0.86em;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #0d0620;
+  }
+
+  .hud-btn:hover {
+    background: #361d75;
+    border-color: #ffd740;
+  }
+
+  /* Bottom Map Drawer Card */
+  #map-drawer {
+    position: absolute;
+    left: 50%;
+    bottom: 2.2%;
+    transform: translateX(-50%);
+    width: min(94%, 52em);
+    background: rgba(20, 11, 46, 0.93);
+    border: 3px solid #a78bfa;
+    box-shadow: 0 0 0 3px #0c061f, 0 8px 24px rgba(0, 0, 0, 0.7);
+    border-radius: 12px;
+    padding: 0.6em 1.05em;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+    pointer-events: auto;
+    z-index: 9;
+  }
+
+  #map-drawer.visible {
+    display: flex;
+  }
+
+  .map-info {
+    text-align: left;
+    flex: 1;
+  }
+
+  .map-info h3 {
+    margin: 0;
+    color: #ffd740;
+    font-size: 1.12em;
+  }
+
+  .map-info p {
+    margin: 0.2em 0 0;
+    font-size: 0.84em;
+    color: #e9d5ff;
+    line-height: 1.3;
+  }
+
+  /* Responsive On-Screen Action Pads during Gameplay */
+  .touch-cluster-left {
+    pointer-events: auto;
+    position: absolute;
+    left: 14px;
+    bottom: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .touch-cluster-right {
+    pointer-events: auto;
+    position: absolute;
+    right: 14px;
+    bottom: 12px;
+    display: flex;
+    gap: 8px;
+  }
+
+  .pad-btn {
+    min-width: 3.3em;
+    height: 3.1em;
+    padding: 0 0.65em;
+    border-radius: 10px;
+    background: rgba(22, 12, 50, 0.62);
+    border: 2px solid rgba(196, 181, 253, 0.55);
+    color: #fff;
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 0.84em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 3px 0 rgba(10, 5, 25, 0.7);
+  }
+
+  .pad-btn.gold {
+    border-color: rgba(255, 215, 64, 0.75);
+    color: #ffd740;
+  }
+
+  .pad-btn:active, .pad-btn.pressed {
+    background: rgba(124, 58, 237, 0.82);
+    transform: translateY(2px);
+  }
+
+  @media (max-width: 640px) {
+    .char-grid, .menu-grid, .ctrl-grid { grid-template-columns: 1fr; }
+    .menu-grid .span-2 { grid-column: span 1; }
+    #map-drawer { flex-direction: column; text-align: center; padding: 0.55em 0.8em; }
+    .map-info { text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" width="960" height="540"></canvas>
+  <div id="corner-controls"></div>
+  <div id="map-drawer"></div>
+  <div id="ui"></div>
+</div>
+
+<script>
+/* ============================================================================
+   LOST RELICS: RUNNING QUEST — Fun Dumb Creations
+   Complete 16-bit Pixel-Art Platformer-Runner & Educational Adventure
+   ============================================================================ */
+
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  const uiEl = document.getElementById('ui');
+  const cornerEl = document.getElementById('corner-controls');
+  const mapDrawerEl = document.getElementById('map-drawer');
+
+  const W = 960;
+  const H = 540;
+  const GROUND_Y = 446;
+
+  // --------------------------------------------------------------------------
+  // 1. BILINGUAL LOCALIZATION (Bahasa Indonesia + English)
+  // --------------------------------------------------------------------------
+  const LANG = {
+    id: {
+      studioSub: 'MEMPERSEMBAHKAN',
+      skip: 'LEWATI >>',
+      next: 'LANJUT >',
+      gameTitle: 'LOST RELICS',
+      gameSub: 'FINDING MISSING TREASURES',
+      startGame: '▶ MULAI PETUALANGAN',
+      worldMap: '🗺️ PETA DUNIA',
+      howToPlay: '📖 KONTROL & CARA MAIN',
+      meetExplorers: '🤖 KENAL EKSPLORER',
+      achievements: '🏆 PENCAPAIAN',
+      watchIntro: '🎬 TONTON INTRO',
+      watchEnding: '👑 TONTON ENDING',
+      options: '⚙️ OPSI',
+      back: 'KEMBALI',
+      select: 'PILIH',
+      selected: '✔ DIPILIH',
+      soundOn: 'SUARA SFX: AKTIF',
+      soundOff: 'SUARA SFX: MATI',
+      musicOn: 'MUSIK CHIPTUNE: AKTIF',
+      musicOff: 'MUSIK CHIPTUNE: MATI',
+      touchOn: 'TOMBOL SENTUH LAYAR: AKTIF',
+      touchOff: 'TOMBOL SENTUH LAYAR: SEMBUNYI',
+      langBtn: 'BAHASA: INDONESIA 🇮🇩',
+      resetProg: 'RESET PROGRES RELIC',
+      cutscene: [
+        'Di dalam reruntuhan kuno yang diterangi obor, Gearlock dan Crag menemukan Peta Bintang & Relic Sepatu Emas!',
+        'Tiba-tiba energi kosmik memancar! 5 Relic Emas dan fragmen kristal terpencar ke 5 pulau melayang di langit!',
+        'Bersama-sama, Gearlock dan Crag berlari dan melompat menembus gerbang kuno untuk mengumpulkan kembali semua Lost Relics!'
+      ],
+      endingScenes: [
+        'Kembali di altar reruntuhan kuno, Gearlock dan Crag meletakkan kelima Relic Emas dan seluruh fragmen kristal ke tempat asalnya!',
+        'Sinar emas memancar ke langit berbintang, memulihkan keseimbangan energi di kelima pulau melayang!',
+        'Sebagai Penjaga Harta Kuno & Juara Lintasan Langit, Gearlock dan Crag merayakan petualangan lari mereka bersama!',
+        'TAMAT — TERIMA KASIH TELAH BERMAIN LOST RELICS: RUNNING QUEST!'
+      ],
+      endingCreditsTitle: 'PETUALANGAN SELESAI!',
+      endingCreditsSub: '5 / 5 RELIC EMAS DIPULIHKAN',
+      endingCreditsBody: 'Gearlock dan Crag telah memulihkan semua harta karun kuno dan menguasai teknik pemanasan, postur lari, pengaturan napas, hidrasi, serta sprint & pendinginan!',
+      replayEnding: '🔄 ULANGI ENDING',
+      howTitle: 'KONTROL & GERAKAN EKSPLORER',
+      howIntro: 'Kendalikan Gearlock atau Crag secara bebas! Jelajahi platform tinggi, lompati dinding reruntuhan, dan gunakan kemampuan khusus tiap karakter:',
+      controls: [
+        { k: 'A / D  atau  ◀ / ▶', d: 'Berlari Maju / Mundur & Mengatur Arah' },
+        { k: 'W / ▲ / SPASI (1x & 2x)', d: 'Lompat Variabel & Double Jump (Fire Jetpack / Crystal Hop)' },
+        { k: 'S / ▼ (Saat Berlari / Diam)', d: 'Merunduk Rendah atau Meluncur Taktis (Ekstra Licin di Salju!)' },
+        { k: 'S / ▼ (Saat di Udara)', d: 'Ground Slam: Menukik Cepat + Gelombang Kejut Penghancur' },
+        { k: 'E / SHIFT / J / Z', d: 'Dash Horizontal: Fire Dash (Gearlock) / Boulder Charge (Crag)' },
+        { k: 'M1 (Klik Kiri) / K / X', d: 'Aksi Spesial: Ayunan Obor Api (Gearlock) / Hantaman Beliung (Crag)' },
+        { k: 'Sentuh Dinding di Udara + Lompat', d: 'Wall-Slide & Wall-Jump untuk memanjat tebing reruntuhan!' },
+        { k: 'Tujuan Tiap Pulau (1 Level/Pulau)', d: 'Kumpulkan 5 Fragmen ◆ (4 di jalur + 1 Kuis) & raih Sepatu Emas!' }
+      ],
+      mapTitle: 'PETA PULAU LANGIT',
+      lockedMsg: 'Selesaikan pulau sebelumnya untuk membuka jalur ini!',
+      playIsland: '▶ JELAJAHI PULAU',
+      relicClaimedTag: '★ RELIC TERKUMPUL',
+      runTipLabel: 'TIPS LARI:',
+      startRun: '▶ MULAI PETUALANGAN',
+      checkpointSub: 'CHECKPOINT TENGAH JALAN',
+      checkpointTitle: 'Tantangan Edukasi Lari',
+      correctTitle: 'BENAR! +1 Fragmen ◆ & Speed Boost!',
+      wrongTitle: 'Kurang Tepat — Coba Lagi!',
+      continueRun: 'LANJUTKAN ▶',
+      tryAgain: 'COBA LAGI',
+      outOfHpTitle: 'Energi Habis!',
+      outOfHpBody: 'Gunakan gerak maju-mundur, lompat dinding, dash, atau aksi senjata untuk melewati rintangan!',
+      notEnoughTitle: 'Fragmen Belum Lengkap',
+      notEnoughBody: 'Kamu membutuhkan semua 5 fragmen ◆ (termasuk kuis tengah jalan) untuk membuka segel Relic Sepatu Emas. Kamu bisa mundur untuk mencari fragmen yang terlewat!',
+      relicTitle: 'RELIC EMAS DIKLAIM!',
+      nextIslandBtn: 'KE PETA PULAU ▶',
+      mainMenu: 'MENU UTAMA',
+      pauseTitle: 'PERMAINAN DIJEDA',
+      resume: '▶ LANJUTKAN',
+      toMap: '🗺️ KE PETA DUNIA'
+    },
+    en: {
+      studioSub: 'PRESENTS',
+      skip: 'SKIP >>',
+      next: 'NEXT >',
+      gameTitle: 'LOST RELICS',
+      gameSub: 'FINDING MISSING TREASURES',
+      startGame: '▶ START ADVENTURE',
+      worldMap: '🗺️ WORLD MAP',
+      howToPlay: '📖 CONTROLS & HOW TO PLAY',
+      meetExplorers: '🤖 MEET EXPLORERS',
+      achievements: '🏆 ACHIEVEMENTS',
+      watchIntro: '🎬 WATCH INTRO',
+      watchEnding: '👑 WATCH ENDING',
+      options: '⚙️ OPTIONS',
+      back: 'BACK',
+      select: 'SELECT',
+      selected: '✔ SELECTED',
+      soundOn: 'SOUND SFX: ON',
+      soundOff: 'SOUND SFX: OFF',
+      musicOn: 'CHIPTUNE MUSIC: ON',
+      musicOff: 'CHIPTUNE MUSIC: OFF',
+      touchOn: 'ON-SCREEN BUTTONS: VISIBLE',
+      touchOff: 'ON-SCREEN BUTTONS: HIDDEN',
+      langBtn: 'LANGUAGE: ENGLISH 🇬🇧',
+      resetProg: 'RESET RELIC PROGRESS',
+      cutscene: [
+        'Deep inside a torch-lit mossy ruin, Gearlock and Crag discover a Cosmic Star Map and the Golden Running Relic!',
+        'Suddenly, a mystical surge erupts! The 5 Golden Relics scatter across 5 floating islands high in the starry sky!',
+        'Side by side, Gearlock and Crag dash and leap through the ancient stone portal to recover all the Lost Relics!'
+      ],
+      endingScenes: [
+        'Back at the ancient ruin pedestal, Gearlock and Crag return all five Golden Relics and crystal fragments to their rightful place!',
+        'Beams of golden light shoot into the starry sky, restoring harmony across all five floating islands!',
+        'As Guardians of the Ancient Relics and Champions of the Sky Track, Gearlock and Crag celebrate their victory together!',
+        'THE END — THANK YOU FOR PLAYING LOST RELICS: RUNNING QUEST!'
+      ],
+      endingCreditsTitle: 'ADVENTURE COMPLETE!',
+      endingCreditsSub: '5 / 5 GOLDEN RELICS RESTORED',
+      endingCreditsBody: 'Gearlock and Crag restored every ancient treasure and mastered warm-ups, running posture, steady breathing, hydration, and sprinting & cool-downs!',
+      replayEnding: '🔄 REPLAY ENDING',
+      howTitle: 'CONTROLS & MOVEMENT ABILITIES',
+      howIntro: 'Take full control of Gearlock or Crag! Run forward or back up, scale ruin walls, and unleash signature abilities:',
+      controls: [
+        { k: 'A / D  or  ◀ / ▶', d: 'Move Left / Right with smooth momentum & air control' },
+        { k: 'W / ▲ / SPACE (1x & 2x)', d: 'Variable Jump & Double Jump (Fire Jetpack / Crystal Hop)' },
+        { k: 'S / ▼ (Grounded)', d: 'Crouch low or Tactical Slide (Extra fast & long on Snow!)' },
+        { k: 'S / ▼ (Mid-Air)', d: 'Ground Slam: Fast downward dive + shattering shockwave' },
+        { k: 'E / SHIFT / J / Z', d: 'Horizontal Dash: Fire Dash (Gearlock) / Boulder Charge (Crag)' },
+        { k: 'M1 (Left Click) / K / X', d: 'Special Action: Torch Flame Arc (Gearlock) / Pickaxe Smash (Crag)' },
+        { k: 'Touch Wall Mid-Air + Jump', d: 'Wall-Slide & Wall-Jump to climb high ruin cliffs!' },
+        { k: 'Island Goal (1 Level/Island)', d: 'Collect all 5 Fragments ◆ (4 on stage + 1 Quiz) & claim the Relic!' }
+      ],
+      mapTitle: 'FLOATING ISLANDS MAP',
+      lockedMsg: 'Complete the previous island to unlock this sky path!',
+      playIsland: '▶ ENTER ISLAND',
+      relicClaimedTag: '★ RELIC CLAIMED',
+      runTipLabel: 'RUNNING TIP:',
+      startRun: '▶ START ADVENTURE',
+      checkpointSub: 'HALFWAY CHECKPOINT',
+      checkpointTitle: 'Running Knowledge Quiz',
+      correctTitle: 'CORRECT! +1 Fragment ◆ & Speed Boost!',
+      wrongTitle: 'Not Quite — Try Again!',
+      continueRun: 'KEEP GOING ▶',
+      tryAgain: 'TRY AGAIN',
+      outOfHpTitle: 'Out of Energy!',
+      outOfHpBody: 'Use bidirectional movement, wall-jumps, dashes, or your special attack to overcome hazards!',
+      notEnoughTitle: 'Missing Fragments',
+      notEnoughBody: 'You need all 5 crystal fragments ◆ (including the halfway quiz) to unseal the Golden Running Relic. You can backtrack to find missed fragments!',
+      relicTitle: 'GOLDEN RELIC CLAIMED!',
+      nextIslandBtn: 'TO WORLD MAP ▶',
+      mainMenu: 'MAIN MENU',
+      pauseTitle: 'GAME PAUSED',
+      resume: '▶ RESUME',
+      toMap: '🗺️ WORLD MAP'
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // 2. EXPLORER CHARACTERS & 5 DISTINCT WORLDS DATA
+  // --------------------------------------------------------------------------
+  const EXPLORERS = {
+    gear: {
+      name: 'Gearlock',
+      role: { id: 'Penjelajah / Pengintai • Elemen Api', en: 'Explorer / Scout • Fire Element' },
+      quote: '"Small steps. Big discoveries."',
+      hp: 3,
+      maxSpeed: 6.4,
+      jumpPower: 14.8,
+      doubleJumpPower: 13.4,
+      invFrames: 85,
+      perks: {
+        id: 'Speed Tinggi • Fire Jetpack • Fire Dash • Ayunan Obor Api',
+        en: 'High Speed • Fire Jetpack • Fire Dash • Torch Flame Arc'
+      },
+      desc: {
+        id: 'Automaton perunggu berantena dengan mata biru menyala, ransel kulit, roda gigi di dada, dan obor api. Lincah di udara dengan Fire Jetpack dan Fire Dash!',
+        en: 'Riveted bronze automaton with antennae, glowing blue cyclops eye, leather backpack, exposed torso gear, and burning torch. Agile with Fire Jetpack & Fire Dash!'
+      }
+    },
+    crag: {
+      name: 'Crag',
+      role: { id: 'Penjaga / Tangguh • Elemen Tanah & Kristal', en: 'Guardian / Bruiser • Earth & Crystal' },
+      quote: '"Steady steps. Unstoppable strength."',
+      hp: 4,
+      maxSpeed: 5.5,
+      jumpPower: 13.8,
+      doubleJumpPower: 12.2,
+      invFrames: 120,
+      perks: {
+        id: '4 HP • Boulder Charge Penghancur • Heavy Slam • Beliung Batu',
+        en: '4 HP • Destructive Boulder Charge • Heavy Slam • Pickaxe Smash'
+      },
+      desc: {
+        id: 'Golem batu berlumut dengan kristal ungu di bahu, syal biru petualang, dan beliung penambang. Memiliki 4 HP, Boulder Charge, dan beliung penghancur rintangan!',
+        en: 'Mossy chiseled stone golem with purple shoulder crystals, royal-blue scarf, and miner’s pickaxe. Has 4 HP, Boulder Charge, and obstacle-smashing Pickaxe!'
+      }
+    }
+  };
+
+  const WORLDS = [
+    {
+      id: 0,
+      name: 'Green Fields',
+      mapPos: { x: 225, y: 278 },
+      feat: { id: 'Jamur Pegas & Tebing Reruntuhan', en: 'Spring Mushrooms & Ruin Cliffs' },
+      desc: {
+        id: 'Injak jamur merah elastis untuk melambung tinggi, panjat dinding batu dengan Wall-Jump, dan ayunkan senjata menembus rintangan kayu!',
+        en: 'Bounce off elastic red mushrooms, scale stone ruin walls with Wall-Jumps, and smash through wooden hurdles!'
+      },
+      tip: {
+        id: 'Lakukan pemanasan 5–10 menit sebelum berlari. Peregangan dinamis menyiapkan otot dan mencegah cedera.',
+        en: 'Warm up for 5–10 minutes before running. Dynamic stretches prepare your muscles and prevent injury.'
+      },
+      quiz: {
+        q: { id: 'Mengapa pemanasan penting sebelum berlari?', en: 'Why is warming up important before running?' },
+        a: {
+          id: ['Menyiapkan otot dan mengurangi risiko cedera', 'Supaya tubuh cepat lelah', 'Agar tidak perlu minum air putih'],
+          en: ['Prepares muscles and reduces injury risk', 'To get tired faster', 'So you never need to drink water']
+        },
+        c: 0,
+        e: {
+          id: 'Pemanasan melancarkan aliran darah, meningkatkan kelenturan sendi, dan menghangatkan otot.',
+          en: 'Warming up boosts blood flow, loosens joints, and warms your muscles safely.'
+        }
+      },
+      grav: 0.72,
+      sky: ['#5cc8f5', '#c8f5be'],
+      far: '#378c43',
+      ground: '#7d5034',
+      grass: '#3da342'
+    },
+    {
+      id: 1,
+      name: 'City Circuit',
+      mapPos: { x: 378, y: 158 },
+      feat: { id: 'Bantalan Turbo & Drone Patroli', en: 'Turbo Speed Pads & Patrol Drones' },
+      desc: {
+        id: 'Injak bantalan kuning untuk melesat cepat, merunduk di bawah drone patroli, atau lompat ke atap menara kota!',
+        en: 'Step on yellow turbo pads for speed surges, slide beneath patrol drones, or scale city tower ledges!'
+      },
+      tip: {
+        id: 'Jaga postur lari: badan tegak sedikit condong ke depan, pandangan lurus ke depan, dan ayunkan lengan secara rileks.',
+        en: 'Keep proper posture: upright torso leaning slightly forward, eyes ahead, and arms swinging relaxed.'
+      },
+      quiz: {
+        q: { id: 'Postur tubuh yang benar saat berlari adalah...', en: 'What is the proper body posture while running?' },
+        a: {
+          id: ['Membungkuk dan menunduk ke bawah', 'Tegak, pandangan lurus ke depan, lengan rileks', 'Bahu terangkat tinggi dan kaku'],
+          en: ['Slouched over looking at your feet', 'Upright, eyes ahead, arms relaxed', 'Shoulders raised high and tense']
+        },
+        c: 1,
+        e: {
+          id: 'Postur tegak dan bahu rileks membuat paru-paru mengembang optimal dan langkah lebih efisien.',
+          en: 'An upright posture with relaxed shoulders opens your lungs and makes each stride efficient.'
+        }
+      },
+      grav: 0.72,
+      sky: ['#6b5ce7', '#f5a9cb'],
+      far: '#46388a',
+      ground: '#38344d',
+      grass: '#696394'
+    },
+    {
+      id: 2,
+      name: 'Snowy Track',
+      mapPos: { x: 642, y: 170 },
+      feat: { id: 'Lintasan Es Licin & Bola Salju', en: 'Slippery Ice & Rolling Snowballs' },
+      desc: {
+        id: 'Meluncur di atas es memberikan dorongan kecepatan ekstra! Hancurkan kristal es atau panjat tebing gua es.',
+        en: 'Sliding on ice gives a super speed boost! Smash ice crystals or wall-jump up frozen cavern cliffs.'
+      },
+      tip: {
+        id: 'Atur napas dengan ritme teratur (misalnya tarik napas 2–3 langkah, buang 2 langkah) agar tidak cepat terengah.',
+        en: 'Control your breathing rhythm (e.g., inhale for 2–3 steps, exhale for 2 steps) to sustain stamina.'
+      },
+      quiz: {
+        q: { id: 'Bagaimana cara mengatur napas saat berlari jarak jauh?', en: 'How should you breathe during distance running?' },
+        a: {
+          id: ['Menahan napas selama mungkin', 'Napas dalam dengan ritme teratur', 'Napas sangat cepat dan dangkal'],
+          en: ['Hold your breath as long as possible', 'Deep breaths in a steady rhythm', 'Very fast, shallow gasps']
+        },
+        c: 1,
+        e: {
+          id: 'Ritme napas yang stabil menjaga pasokan oksigen ke otot sehingga daya tahan tetap terjaga.',
+          en: 'A steady breathing rhythm keeps oxygen flowing to your muscles and prevents early fatigue.'
+        }
+      },
+      grav: 0.72,
+      sky: ['#8ec5fc', '#eef7ff'],
+      far: '#7294bf',
+      ground: '#cfe3f5',
+      grass: '#ffffff'
+    },
+    {
+      id: 3,
+      name: 'Desert Dash',
+      mapPos: { x: 632, y: 372 },
+      feat: { id: 'Badai Angin Gurun & Pasir Hisap', en: 'Desert Headwinds & Quicksand' },
+      desc: {
+        id: 'Gunakan Dash menembus angin gurun yang berhembus berkala, lompati pasir hisap, dan tebas semak berduri!',
+        en: 'Dash through periodic desert headwinds, leap across quicksand pits, and smash rolling tumbleweeds!'
+      },
+      tip: {
+        id: 'Daya tahan dibangun bertahap. Jaga tempo lari dan tetap terhidrasi: minum air sebelum, saat, dan sesudah lari.',
+        en: 'Build endurance gradually. Pace yourself and stay hydrated: drink water before, during, and after running.'
+      },
+      quiz: {
+        q: { id: 'Saat berlari di cuaca panas terik, sebaiknya kita...', en: 'When running in hot weather, you should...' },
+        a: {
+          id: ['Menghindari minum air agar tidak berat', 'Tetap terhidrasi sebelum, saat, dan sesudah lari', 'Langsung sprint maksimal sejak garis start'],
+          en: ['Avoid drinking water completely', 'Stay hydrated before, during, and after running', 'Sprint at full speed from the very start']
+        },
+        c: 1,
+        e: {
+          id: 'Dehidrasi menurunkan performa dan membuat tubuh cepat lelah serta pusing.',
+          en: 'Dehydration drains energy quickly and can cause dizziness.'
+        }
+      },
+      grav: 0.72,
+      sky: ['#ff9e44', '#ffe29a'],
+      far: '#c45e31',
+      ground: '#d6994f',
+      grass: '#b5722d'
+    },
+    {
+      id: 4,
+      name: 'Sky Stadium',
+      mapPos: { x: 822, y: 274 },
+      feat: { id: 'Gravitasi Rendah & Platform Langit', en: 'Low Gravity & Floating Sky Platforms' },
+      desc: {
+        id: 'Lompatan melayang ringan di atas awan! Naiki platform langit bertingkat dan hadapi zona Sprint Akhir!',
+        en: 'Floaty low-gravity jumps high above the clouds! Climb multi-tier sky platforms and conquer the Final Sprint!'
+      },
+      tip: {
+        id: 'Sprint adalah lari kecepatan maksimal jarak pendek. Dorong kuat dengan kaki, ayunkan lengan cepat, lalu lakukan pendinginan.',
+        en: 'Sprinting is maximum speed over short distances. Drive powerfully with your legs, pump your arms, and cool down afterward.'
+      },
+      quiz: {
+        q: { id: 'Apa yang wajib dilakukan setelah selesai berlari kencang?', en: 'What should you do right after finishing a fast run?' },
+        a: {
+          id: ['Langsung duduk diam atau berbaring', 'Pendinginan: jalan santai dan peregangan ringan', 'Langsung makan berlebihan'],
+          en: ['Immediately sit or lie down still', 'Cool down with slow walking and gentle stretching', 'Eat a heavy meal immediately']
+        },
+        c: 1,
+        e: {
+          id: 'Pendinginan membantu detak jantung turun perlahan dan mencegah otot kaku.',
+          en: 'Cooling down lowers your heart rate gradually and reduces muscle soreness.'
+        }
+      },
+      grav: 0.52,
+      sky: ['#3b7ddd', '#cde6ff'],
+      far: '#a49cd4',
+      ground: '#e3dcff',
+      grass: '#9582e8'
+    }
+  ];
+
+  const ACHIEVEMENTS_LIST = [
+    {
+      id: 'first',
+      title: { id: 'Fragmen Pertama', en: 'First Fragment' },
+      desc: { id: 'Kumpulkan fragmen kristal pertamamu.', en: 'Collect your very first crystal fragment.' }
+    },
+    {
+      id: 'clean',
+      title: { id: 'Tanpa Lecet', en: 'No Scratch' },
+      desc: { id: 'Selesaikan satu pulau tanpa kehilangan HP.', en: 'Complete an island without taking any damage.' }
+    },
+    {
+      id: 'brain',
+      title: { id: 'Otak Pelari', en: 'Runner’s Brain' },
+      desc: { id: 'Jawab kuis checkpoint tanpa kesalahan.', en: 'Answer checkpoint quizzes with zero mistakes.' }
+    },
+    {
+      id: 'duo',
+      title: { id: 'Duet Penjelajah', en: 'Explorer Duo' },
+      desc: { id: 'Klaim relic menggunakan Gearlock dan Crag.', en: 'Claim relics using both Gearlock and Crag.' }
+    },
+    {
+      id: 'all',
+      title: { id: 'Kolektor Relic', en: 'Relic Collector' },
+      desc: { id: 'Kumpulkan seluruh 5 Relic Sepatu Emas!', en: 'Collect all 5 Golden Running Relics!' }
+    }
+  ];
+
+  // --------------------------------------------------------------------------
+  // 3. PERSISTENT GAME STATE
+  // --------------------------------------------------------------------------
+  const state = {
+    screen: 'splash', // 'splash' | 'cutscene' | 'ending' | 'menu' | 'map' | 'play' | 'modal'
+    lang: 'id',
+    char: 'gear',
+    sfx: true,
+    music: true,
+    showTouch: true,
+    unlockedWorld: 0,
+    selectedWorld: 0,
+    relics: [],
+    ach: {},
+    charsWon: {},
+    perfectQuiz: true,
+    splashTimer: 0,
+    cutSceneIdx: 0,
+    cutTimer: 0,
+    endingIdx: 0,
+    endingTimer: 0,
+    endingFireworks: [],
+    mapExplorerX: 112,
+    mapExplorerY: 278,
+    mapTargetX: 225,
+    mapTargetY: 278,
+    mapPulse: 0
+  };
+
+  try {
+    const saved = JSON.parse(localStorage.getItem('lost_relics_save_v2') || 'null');
+    if (saved) {
+      state.unlockedWorld = Math.min(4, Math.max(0, saved.unlockedWorld || 0));
+      state.relics = Array.isArray(saved.relics) ? saved.relics : [];
+      state.ach = saved.ach || {};
+      state.charsWon = saved.charsWon || {};
+      if (saved.char === 'gear' || saved.char === 'crag') state.char = saved.char;
+      if (saved.lang === 'id' || saved.lang === 'en') state.lang = saved.lang;
+      if (typeof saved.showTouch === 'boolean') state.showTouch = saved.showTouch;
+    }
+  } catch (e) {}
+
+  function saveProgress() {
+    try {
+      localStorage.setItem('lost_relics_save_v2', JSON.stringify({
+        unlockedWorld: state.unlockedWorld,
+        relics: state.relics,
+        ach: state.ach,
+        charsWon: state.charsWon,
+        char: state.char,
+        lang: state.lang,
+        showTouch: state.showTouch
+      }));
+    } catch (e) {}
+  }
+
+  const T = (key) => LANG[state.lang][key];
+
+  // --------------------------------------------------------------------------
+  // 4. RETRO 16-BIT WEB AUDIO CHIPTUNE ENGINE
+  // --------------------------------------------------------------------------
+  const AudioSys = {
+    ctx: null,
+    bgmTimer: 0,
+    noteIdx: 0,
+
+    ensure() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    },
+
+    tone(freq, dur = 0.1, type = 'square', vol = 0.045, slideTo = null) {
+      if (!state.sfx) return;
+      this.ensure();
+      if (!this.ctx) return;
+      try {
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + dur);
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + dur);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + dur);
+      } catch (e) {}
+    },
+
+    sfxJump() { this.tone(340, 0.13, 'square', 0.045, 680); },
+    sfxDoubleJump() { this.tone(520, 0.14, 'triangle', 0.06, 980); },
+    sfxWallJump() { this.tone(420, 0.12, 'square', 0.05, 840); },
+    sfxSlide() { this.tone(240, 0.11, 'triangle', 0.04, 130); },
+    sfxDash() { this.tone(300, 0.15, 'sawtooth', 0.05, 920); },
+    sfxSlam() { this.tone(180, 0.22, 'sawtooth', 0.065, 55); },
+    sfxAction() { this.tone(480, 0.12, 'square', 0.05, 220); },
+    sfxBounce() { this.tone(280, 0.22, 'sine', 0.07, 880); },
+    sfxBoost() {
+      this.tone(523, 0.08, 'square', 0.04);
+      setTimeout(() => this.tone(784, 0.14, 'square', 0.045, 1046), 60);
+    },
+    sfxGem() {
+      this.tone(880, 0.07, 'square', 0.045);
+      setTimeout(() => this.tone(1318, 0.12, 'square', 0.045), 55);
+    },
+    sfxSmash() { this.tone(160, 0.16, 'sawtooth', 0.055, 65); },
+    sfxHurt() { this.tone(175, 0.26, 'sawtooth', 0.06, 72); },
+    sfxClick() { this.tone(660, 0.05, 'square', 0.03); },
+    sfxCorrect() {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+        setTimeout(() => this.tone(f, 0.12, 'square', 0.045), i * 70);
+      });
+    },
+    sfxRelic() {
+      [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5].forEach((f, i) => {
+        setTimeout(() => this.tone(f, i === 5 ? 0.35 : 0.11, 'square', 0.05), i * 95);
+      });
+    },
+    sfxFanfare() {
+      [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5, 1318.5].forEach((f, i) => {
+        setTimeout(() => this.tone(f, i === 6 ? 0.45 : 0.13, 'square', 0.05), i * 110);
+      });
+    },
+
+    updateBgm(dt) {
+      if (!state.music || !this.ctx || this.ctx.state !== 'running') return;
+      if (state.screen === 'splash') return;
+
+      const tempo = state.screen === 'play' ? 0.18 : (state.screen === 'ending' ? 0.24 : 0.28);
+      this.bgmTimer += dt;
+      if (this.bgmTimer < tempo) return;
+      this.bgmTimer = 0;
+
+      const melodies = {
+        cutscene: [392, 0, 440, 523.25, 659.25, 0, 587.33, 523.25, 493.88, 0, 392, 440, 523.25, 0, 392, 0],
+        ending:   [523.25, 659.25, 783.99, 1046.5, 987.77, 1046.5, 1318.5, 0, 1174.66, 1046.5, 880, 1046.5, 783.99, 880, 1046.5, 0],
+        menu:     [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 698.46, 523.25, 659.25, 783.99, 1046.5, 987.77, 783.99, 659.25, 0],
+        map:      [440, 523.25, 659.25, 523.25, 493.88, 587.33, 783.99, 587.33, 523.25, 659.25, 880, 783.99, 659.25, 587.33, 523.25, 0],
+        play:     [523.25, 523.25, 659.25, 783.99, 659.25, 783.99, 1046.5, 0, 880, 783.99, 659.25, 587.33, 659.25, 783.99, 659.25, 523.25]
+      };
+
+      const seq = melodies[state.screen] || melodies.menu;
+      const freq = seq[this.noteIdx % seq.length];
+      this.noteIdx++;
+
+      if (freq > 0) {
+        try {
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = state.screen === 'play' ? 'square' : 'triangle';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.015, now);
+          gain.gain.exponentialRampToValueAtTime(0.0005, now + tempo * 0.85);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + tempo * 0.88);
+        } catch (e) {}
+      }
+    }
+  };
+
+  ['pointerdown', 'keydown'].forEach(ev => {
+    window.addEventListener(ev, () => AudioSys.ensure(), { once: true });
+  });
+
+  // --------------------------------------------------------------------------
+  // 5. CRISP PIXEL-GRID MASCOT SPRITE COMPILER (GEARLOCK & CRAG)
+  // --------------------------------------------------------------------------
+  function pxRect(g, x, y, w, h, color) {
+    g.fillStyle = color;
+    g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  }
+
+  /**
+   * Compiles an ASCII pixel matrix into a crisp offscreen pixel-art sprite canvas
+   */
+  function bakePixelGrid(rows, palette, scale = 2) {
+    const h = rows.length;
+    const w = rows[0].length;
+    const c = document.createElement('canvas');
+    c.width = w * scale;
+    c.height = h * scale;
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    for (let r = 0; r < h; r++) {
+      const line = rows[r];
+      for (let col = 0; col < w; col++) {
+        const ch = line[col];
+        if (ch !== '.' && palette[ch]) {
+          g.fillStyle = palette[ch];
+          g.fillRect(col * scale, r * scale, scale, scale);
+        }
+      }
+    }
+    return c;
+  }
+
+  // GEARLOCK PIXEL PALETTE
+  const GEAR_PAL = {
+    o: '#181024', // 1px dark pixel outline
+    b: '#c87d3b', // Warm bronze midtone
+    B: '#ebaa63', // Bright bronze specular highlight
+    d: '#874c1e', // Deep copper shadow
+    k: '#7c4824', // Leather backpack brown
+    K: '#a66838', // Leather highlight / rolled bedroll
+    m: '#4a525d', // Dark gunmetal mechanical joints
+    M: '#7c8796', // Light grey torso gear / rivets
+    v: '#161b26', // Recessed dark eye visor socket
+    c: '#00d8ff', // Glowing cyan-blue cyclops eye
+    C: '#80f5ff', // Inner bright cyan iris
+    w: '#ffffff', // Specular white eye catchlight
+    t: '#5c3618'  // Wooden torch handle
+  };
+
+  // 28x32 Pixel-Grid Templates for Gearlock (Facing Right, Anchor bottom-center)
+  const GEAR_SPRITES = {
+    idle: bakePixelGrid([
+      '......oo...........oo.......',
+      '.....oBBo.........oBBo......',
+      '......oo...........oo.......',
+      '.......oo.........oo........',
+      '........oBBBBBBBBBo.........',
+      '.......oBBBBBBBBBBBo........',
+      '......oBBbbbbbbbbvvvo.......',
+      '......oBbbbbbbbbvcccvo......',
+      '......oBbbbbbbbbvcwCvo......',
+      '....oooBbbbbbbbbvcccvo......',
+      '..ooKKoBbbbbbbbbvvvvo.......',
+      '.oKKKKoBbbbbbbbbbbbBo.......',
+      '.oKkkKoBdddddddddddo........',
+      '.oKkkKoooommmmmmooo.........',
+      '.okkkKoBBBBbbbbBBBBo........',
+      '.okkkKoBbbboooobbbBo........',
+      '.okkkKoBbboomMMobbbBo.......',
+      '.okkkKoBbboMMmMMobbbBo......',
+      '..oookoBbbbomMMobbbbbBo.....',
+      '......oBddddooooddddbBbo....',
+      '.......oommmmmmmmmmoobBbo...',
+      '.......omMmooooooomMmooo....',
+      '.......omMo.......omMo......',
+      '......oBBbo.......oBBbo.....',
+      '......omMmo.......omMmo.....',
+      '......omMmo.......omMmo.....',
+      '.....oBBBbo......oBBBbo.....',
+      '....oBddddo.....oBddddo.....',
+      '....ooooooo.....ooooooo.....',
+      '............................',
+      '............................',
+      '............................'
+    ], GEAR_PAL, 2),
+
+    run1: bakePixelGrid([
+      '.......oo...........oo......',
+      '......oBBo.........oBBo.....',
+      '.......oo...........oo......',
+      '........oo.........oo.......',
+      '.........oBBBBBBBBBo........',
+      '........oBBBBBBBBBBBo.......',
+      '.......oBBbbbbbbbbvvvo......',
+      '.......oBbbbbbbbbvcccvo.....',
+      '.......oBbbbbbbbbvcwCvo.....',
+      '....ooooBbbbbbbbbvcccvo.....',
+      '..ooKKoBbbbbbbbbvvvvo.......',
+      '.oKKKKoBbbbbbbbbbbbBo.......',
+      '.oKkkKoBdddddddddddo........',
+      '.oKkkKoooommmmmmooo.........',
+      '.okkkKoBBBBbbbbBBBBo........',
+      '.okkkKoBbbboooobbbBo........',
+      '.okkkKoBbboomMMobbbBo.......',
+      '.okkkKoBbboMMmMMobbbBo......',
+      '..oookoBbbbomMMobbbbbBo.....',
+      '......oBddddooooddddbBbo....',
+      '.......oommmmmmmmmmoobBbo...',
+      '......omMmo......omMmooo....',
+      '.....oBBbo........omMo......',
+      '....omMmo..........oBBbo....',
+      '...oBBBbo...........omMmo...',
+      '..oBddddo...........oBBBbo..',
+      '..ooooooo..........oBddddo..',
+      '...................ooooooo..',
+      '............................',
+      '............................',
+      '............................',
+      '............................'
+    ], GEAR_PAL, 2),
+
+    run2: bakePixelGrid([
+      '......oo...........oo.......',
+      '.....oBBo.........oBBo......',
+      '......oo...........oo.......',
+      '.......oo.........oo........',
+      '........oBBBBBBBBBo.........',
+      '.......oBBBBBBBBBBBo........',
+      '......oBBbbbbbbbbvvvo.......',
+      '......oBbbbbbbbbvcccvo......',
+      '......oBbbbbbbbbvcwCvo......',
+      '....oooBbbbbbbbbvcccvo......',
+      '..ooKKoBbbbbbbbbvvvvo.......',
+      '.oKKKKoBbbbbbbbbbbbBo.......',
+      '.oKkkKoBdddddddddddo........',
+      '.oKkkKoooommmmmmooo.........',
+      '.okkkKoBBBBbbbbBBBBo........',
+      '.okkkKoBbbboooobbbBo........',
+      '.okkkKoBbboomMMobbbBo.......',
+      '.okkkKoBbboMMmMMobbbBo......',
+      '..oookoBbbbomMMobbbbbBo.....',
+      '......oBddddooooddddbBbo....',
+      '.......oommmmmmmmmmoobBbo...',
+      '........omMmo....omMmooo....',
+      '.........oBBbo..oBBbo.......',
+      '..........omMmoomMmo........',
+      '.........oBBBbooBBBbo.......',
+      '........oBddddoBddddo.......',
+      '........ooooooooooooo.......',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................'
+    ], GEAR_PAL, 2),
+
+    jump: bakePixelGrid([
+      '.......oo...........oo......',
+      '......oBBo.........oBBo.....',
+      '.......oo...........oo......',
+      '........oo.........oo.......',
+      '.........oBBBBBBBBBo........',
+      '........oBBBBBBBBBBBo.......',
+      '.......oBBbbbbbbbbvvvo......',
+      '.......oBbbbbbbbbvCCcvo.....',
+      '.......oBbbbbbbbbvcwCvo.....',
+      '....ooooBbbbbbbbbvCCcvo.....',
+      '..ooKKoBbbbbbbbbvvvvo.......',
+      '.oKKKKoBbbbbbbbbbbbBo.......',
+      '.oKkkKoBdddddddddddo........',
+      '.oKkkKoooommmmmmooo.........',
+      '.okkkKoBBBBbbbbBBBBo........',
+      '.okkkKoBbbboooobbbBo........',
+      '.okkkKoBbboomMMobbbBo.......',
+      '.okkkKoBbboMMmMMobbbBo......',
+      '..oookoBbbbomMMobbbbbBo.....',
+      '......oBddddooooddddbBbo....',
+      '.......oommmmmmmmmmoobBbo...',
+      '......omMmo......omMmooo....',
+      '.....oBBbo........oBBbo.....',
+      '....oBBBbo.........oBBBbo...',
+      '....oooooo.........oooooo...',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................'
+    ], GEAR_PAL, 2),
+
+    crouch: bakePixelGrid([
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '......oo...........oo.......',
+      '.....oBBo.........oBBo......',
+      '......oo...........oo.......',
+      '.......oo.........oo........',
+      '........oBBBBBBBBBo.........',
+      '.......oBBBBBBBBBBBo........',
+      '......oBBbbbbbbbbvvvo.......',
+      '....oooBbbbbbbbbvcccvo......',
+      '..ooKKoBbbbbbbbbvcwCvo......',
+      '.oKKKKoBbbbbbbbbvcccvo......',
+      '.oKkkKoBdddddddddddo........',
+      '.okkkKoBBBBbbbbBBBBo........',
+      '.okkkKoBbboomMMobbbBo.......',
+      '..oookoBddddooooddddbBbo....',
+      '......oommmmmmmmmmoobBbo....',
+      '.....oBBBbo.....oBBBbo......',
+      '....oBddddo....oBddddo......',
+      '....ooooooo....ooooooo......',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................',
+      '............................'
+    ], GEAR_PAL, 2)
+  };
+
+  // CRAG PIXEL PALETTE
+  const CRAG_PAL = {
+    o: '#161124', // 1px dark stone outline
+    s: '#8c8a78', // Chiseled grey-tan stone midtone
+    S: '#b5b29e', // Bright stone edge highlight
+    d: '#59574a', // Deep stone crack / shadow
+    m: '#4caf50', // Lush green moss patch
+    M: '#2e7d32', // Deep moss shadow
+    p: '#a855f7', // Vibrant purple crystal
+    P: '#f3e8ff', // Crystal specular shine
+    e: '#e040fb', // Glowing magenta-purple eye
+    b: '#1d4ed8', // Royal-blue adventurer scarf
+    B: '#3b82f6', // Royal-blue scarf highlight
+    D: '#1e3a8a', // Royal-blue scarf fold shadow
+    w: '#7c4a27', // Wooden pickaxe handle
+    i: '#cbd5e1', // Silver-blue steel pickaxe blade
+    I: '#64748b'  // Steel pickaxe bevel
+  };
+
+  // 32x34 Pixel-Grid Templates for Crag (Facing Right, Anchor bottom-center)
+  const CRAG_SPRITES = {
+    idle: bakePixelGrid([
+      '..........oooo..................',
+      '.........oSSSSo..oo.............',
+      '.........oSssSo.oPPo............',
+      '........oSSSSSSooPPoo...........',
+      '.......oSSssssssmmSSSo..........',
+      '.......oSssssssssmmSSo..........',
+      '.......oSddddddddddddo..........',
+      '....oo.oSssseeessseeSo.oo.......',
+      '...oPPooSssseeessseeSooPPo......',
+      '..oPPpoSSSSSSSSSSSSSSSoPPpo.....',
+      '.oSSSSoSsssssssssssssSoSSSSo....',
+      'oSSmmSSoSdddddddddddSoSSmmSSo...',
+      'oSmmmSSoBBBBBBBBBBBBBoSSmmmSo...',
+      'oSssssSoBbbbbbbbbbbbBoSssssSo...',
+      'oSddddSoDbBBbbbbbbBBDoSddddSo...',
+      'oSssssSo.oBBbboobbBBo.oSssssSo..',
+      '.oSddSo..oBBbo..oBBbo..oSddSo...',
+      '.oSssSo..oBbo....oBbo..oSssSo...',
+      '..oooo...ooo......ooo...oPPo....',
+      '.......oSSSSSSSSSSSSSo..oPPpo...',
+      '......oSSmmmssssssssSSo..oooo...',
+      '......oSmmssssssssssSSo.........',
+      '......oSddddddddddddSSo.........',
+      '......oSssssssssssssSSo.........',
+      '.......oSddddddddddSSo..........',
+      '.......oSSsso....oSSso..........',
+      '......oSSddSo....oSSddSo........',
+      '......oSsssSo....oSsssSo........',
+      '.....oSSdddSo...oSSdddSo........',
+      '.....oooooooo...oooooooo........',
+      '................................',
+      '................................',
+      '................................',
+      '................................'
+    ], CRAG_PAL, 2),
+
+    run1: bakePixelGrid([
+      '...........oooo.................',
+      '..........oSSSSo..oo............',
+      '..........oSssSo.oPPo...........',
+      '.........oSSSSSSooPPoo..........',
+      '........oSSssssssmmSSSo.........',
+      '........oSssssssssmmSSo.........',
+      '........oSddddddddddddo.........',
+      '.....oo.oSssseeessseeSo.oo......',
+      '....oPPooSssseeessseeSooPPo.....',
+      '...oPPpoSSSSSSSSSSSSSSSoPPpo....',
+      '..oSSSSoSsssssssssssssSoSSSSo...',
+      '.oSSmmSSoSdddddddddddSoSSmmSSo..',
+      '.oSmmmSSoBBBBBBBBBBBBBoSSmmmSo..',
+      '.oSssssSoBbbbbbbbbbbbBoSssssSo..',
+      '.oSddddSoDbBBbbbbbbBBDoSddddSo..',
+      '.oSssssSo.oBBbboobbBBo.oSssssSo.',
+      '..oSddSo..oBBbo..oBBbo..oSddSo..',
+      '...oooo...ooo......ooo...oPPo...',
+      '........oSSSSSSSSSSSSSo..oPPpo..',
+      '.......oSSmmmssssssssSSo..oooo..',
+      '.......oSmmssssssssssSSo........',
+      '.......oSddddddddddddSSo........',
+      '.......oSssssssssssssSSo........',
+      '......oSSsso........oSSso.......',
+      '.....oSSddSo.........oSSddSo....',
+      '....oSSdddSo..........oSSdddSo..',
+      '....oooooooo..........oooooooo..',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................'
+    ], CRAG_PAL, 2),
+
+    run2: bakePixelGrid([
+      '..........oooo..................',
+      '.........oSSSSo..oo.............',
+      '.........oSssSo.oPPo............',
+      '........oSSSSSSooPPoo...........',
+      '.......oSSssssssmmSSSo..........',
+      '.......oSssssssssmmSSo..........',
+      '.......oSddddddddddddo..........',
+      '....oo.oSssseeessseeSo.oo.......',
+      '...oPPooSssseeessseeSooPPo......',
+      '..oPPpoSSSSSSSSSSSSSSSoPPpo.....',
+      '.oSSSSoSsssssssssssssSoSSSSo....',
+      'oSSmmSSoSdddddddddddSoSSmmSSo...',
+      'oSmmmSSoBBBBBBBBBBBBBoSSmmmSo...',
+      'oSssssSoBbbbbbbbbbbbBoSssssSo...',
+      'oSddddSoDbBBbbbbbbBBDoSddddSo...',
+      'oSssssSo.oBBbboobbBBo.oSssssSo..',
+      '.oSddSo..oBBbo..oBBbo..oSddSo...',
+      '..oooo...ooo......ooo...oPPo....',
+      '.......oSSSSSSSSSSSSSo..oPPpo...',
+      '......oSSmmmssssssssSSo..oooo...',
+      '......oSmmssssssssssSSo.........',
+      '......oSddddddddddddSSo.........',
+      '......oSssssssssssssSSo.........',
+      '........oSSso....oSSso..........',
+      '.........oSSddSooSSddSo.........',
+      '........oSSdddSoSSdddSo.........',
+      '........ooooooooooooooo.........',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................'
+    ], CRAG_PAL, 2),
+
+    crouch: bakePixelGrid([
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '..........oooo..................',
+      '.........oSSSSo..oo.............',
+      '........oSSSSSSooPPoo...........',
+      '.......oSSssssssmmSSSo..........',
+      '....oo.oSssseeessseeSo.oo.......',
+      '...oPPooSssseeessseeSooPPo......',
+      '.oSSSSoSSSSSSSSSSSSSSSoSSSSo....',
+      'oSSmmSSoBBBBBBBBBBBBBoSSmmSSo...',
+      'oSmmmSSoBbbbbbbbbbbbBoSSmmmSo...',
+      'oSddddSoDbBBbbbbbbBBDoSddddSo...',
+      '.oSssSo.oSSmmmsssssSSo.oSssSo...',
+      '..oooo..oSddddddddddSo..oooo....',
+      '.......oSSdddSo..oSSdddSo.......',
+      '.......oooooooo..oooooooo.......',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................',
+      '................................'
+    ], CRAG_PAL, 2)
+  };
+
+  /**
+   * Renders Gearlock or Crag with crisp pixel sprites + dynamic animated props
+   */
+  function drawExplorer(g, type, x, y, animPhase, opts = {}) {
+    const {
+      sliding = false,
+      crouching = false,
+      dashing = false,
+      slamming = false,
+      wallSliding = false,
+      actionTimer = 0,
+      airBoostFlash = 0,
+      celebrating = false,
+      scale = 1,
+      facing = 1,
+      torchLit = true,
+      moving = false
+    } = opts;
+
+    g.save();
+    g.translate(Math.round(x), Math.round(y));
+
+    const sx = scale * facing;
+    const sy = sliding ? scale * 0.62 : scale;
+    g.scale(sx, sy);
+
+    const lowPose = sliding || crouching;
+    const bob = celebrating
+      ? Math.abs(Math.sin(animPhase * 3.2)) * 8
+      : ((!lowPose && moving) ? Math.abs(Math.sin(animPhase * 2.2)) * 3 : 0);
+
+    if (type === 'gear') {
+      let sprite = GEAR_SPRITES.idle;
+      if (lowPose) sprite = GEAR_SPRITES.crouch;
+      else if (celebrating || slamming || dashing || airBoostFlash > 0) sprite = GEAR_SPRITES.jump;
+      else if (moving) sprite = ((animPhase * 2.4) | 0) % 2 === 0 ? GEAR_SPRITES.run1 : GEAR_SPRITES.run2;
+
+      if (airBoostFlash > 0 || dashing || slamming) {
+        const fLen = 14 + (((animPhase * 12) | 0) % 8);
+        pxRect(g, -24, -26, 10, fLen, '#ff5722');
+        pxRect(g, -22, -26, 6, fLen - 5, '#ffd740');
+      }
+
+      g.drawImage(sprite, -28, -58 - bob);
+
+      if (torchLit) {
+        g.save();
+        if (actionTimer > 0) {
+          const swingProg = 1 - actionTimer / 14;
+          g.translate(22, -26 - bob);
+          g.rotate(-0.6 + swingProg * 1.9);
+          pxRect(g, -2, -22, 5, 22, '#5c3618');
+          pxRect(g, -6, -38, 14, 18, '#ff6d00');
+          pxRect(g, -3, -34, 8, 12, '#ffd740');
+          g.fillStyle = 'rgba(255, 145, 0, 0.55)';
+          g.beginPath();
+          g.arc(0, -14, 34, -0.8, 0.9);
+          g.lineTo(0, -14);
+          g.fill();
+        } else {
+          const tx = lowPose ? 24 : 23;
+          const ty = lowPose ? -22 : (celebrating ? -46 - bob : -36 - bob);
+          pxRect(g, tx, ty, 5, 16, '#5c3618');
+          pxRect(g, tx - 1, ty - 2, 7, 3, '#8d5524');
+          const flick = ((animPhase * 6) | 0) % 3;
+          pxRect(g, tx - 3, ty - 14 - flick, 11, 12 + flick, '#ff5722');
+          pxRect(g, tx - 1, ty - 11 - (flick % 2), 7, 9, '#ffca28');
+          pxRect(g, tx + 1, ty - 7, 3, 5, '#ffffff');
+        }
+        g.restore();
+      }
+    } else {
+      let sprite = CRAG_SPRITES.idle;
+      if (lowPose) sprite = CRAG_SPRITES.crouch;
+      else if (moving || dashing || slamming) {
+        sprite = ((animPhase * 2.1) | 0) % 2 === 0 ? CRAG_SPRITES.run1 : CRAG_SPRITES.run2;
+      }
+
+      if (moving || dashing || slamming || wallSliding || celebrating) {
+        const wave = Math.sin(animPhase * 4) * 3;
+        pxRect(g, -28, -42 - bob, 14, 6, '#1d4ed8');
+        pxRect(g, -36, -40 - bob + wave, 12, 5, '#3b82f6');
+        pxRect(g, -32, -35 - bob - wave, 10, 4, '#1e3a8a');
+      }
+
+      g.drawImage(sprite, -32, -60 - bob);
+
+      g.save();
+      const px = lowPose ? 22 : 24;
+      const py = lowPose ? -18 : (celebrating ? -36 - bob : -26 - bob);
+      g.translate(px, py);
+      if (actionTimer > 0) {
+        const swingProg = 1 - actionTimer / 14;
+        g.rotate(-1.1 + swingProg * 2.3);
+        g.fillStyle = 'rgba(192, 132, 252, 0.45)';
+        g.beginPath();
+        g.arc(0, -10, 38, -0.7, 0.9);
+        g.lineTo(0, -10);
+        g.fill();
+      } else if (slamming) {
+        g.rotate(2.4);
+      } else if (celebrating) {
+        g.rotate(-0.65 + Math.sin(animPhase * 5) * 0.25);
+      } else {
+        g.rotate(-0.25 + Math.sin(animPhase * 2) * 0.08);
+      }
+      pxRect(g, -2, -24, 4, 30, '#7c4a27');
+      pxRect(g, -1, -24, 2, 30, '#a66838');
+      pxRect(g, -12, -26, 24, 4, '#cbd5e1');
+      pxRect(g, -15, -23, 5, 4, '#94a3b8');
+      pxRect(g, 10, -23, 5, 4, '#94a3b8');
+      pxRect(g, -3, -27, 6, 6, '#64748b');
+      g.restore();
+    }
+
+    g.restore();
+  }
+
+  /**
+   * Renders the "FUN DUMB CREATIONS" Metallic Silver Brain + Golden D-Pad Emblem
+   */
+  function drawStudioLogo(g, cx, cy, scale = 1, shimmerPhase = 0) {
+    g.save();
+    g.translate(cx, cy);
+    g.scale(scale, scale);
+
+    const silverBase = '#c4c7ce';
+    const silverLight = '#f1f3f7';
+    const silverDark = '#757982';
+    const outline = '#09090d';
+
+    pxRect(g, -68, -76, 136, 134, outline);
+    pxRect(g, -82, -52, 164, 92, outline);
+    pxRect(g, -54, -92, 108, 160, outline);
+
+    pxRect(g, -62, -70, 124, 122, silverBase);
+    pxRect(g, -76, -46, 152, 80, silverBase);
+    pxRect(g, -48, -86, 96, 148, silverBase);
+
+    pxRect(g, -44, -82, 88, 12, silverLight);
+    pxRect(g, -72, -44, 14, 48, silverLight);
+
+    pxRect(g, -46, 52, 92, 10, silverDark);
+    pxRect(g, -3, 18, 6, 46, outline);
+    pxRect(g, -56, -8, 22, 6, outline);
+    pxRect(g, 34, -8, 22, 6, outline);
+    pxRect(g, -46, 22, 24, 6, outline);
+    pxRect(g, 22, 22, 24, 6, outline);
+
+    pxRect(g, -22, -74, 44, 106, outline);
+    pxRect(g, -54, -42, 108, 42, outline);
+
+    const goldMain = '#d6b46c';
+    const goldHi = '#f7e1a0';
+    const goldShadow = '#8c6d32';
+
+    const drawPadBtn = (bx, by, bw, bh, arrowDir) => {
+      pxRect(g, bx, by, bw, bh, goldMain);
+      pxRect(g, bx, by, bw, 4, goldHi);
+      pxRect(g, bx, by + bh - 4, bw, 4, goldShadow);
+      g.fillStyle = outline;
+      g.beginPath();
+      const mx = bx + bw / 2, my = by + bh / 2;
+      if (arrowDir === 'U') { g.moveTo(mx, my - 6); g.lineTo(mx - 6, my + 4); g.lineTo(mx + 6, my + 4); }
+      if (arrowDir === 'D') { g.moveTo(mx, my + 6); g.lineTo(mx - 6, my - 4); g.lineTo(mx + 6, my - 4); }
+      if (arrowDir === 'L') { g.moveTo(mx - 6, my); g.lineTo(mx + 4, my - 6); g.lineTo(mx + 4, my + 6); }
+      if (arrowDir === 'R') { g.moveTo(mx + 6, my); g.lineTo(mx - 4, my - 6); g.lineTo(mx - 4, my + 6); }
+      g.fill();
+    };
+
+    drawPadBtn(-14, -68, 28, 30, 'U');
+    drawPadBtn(-14, -4, 28, 30, 'D');
+    drawPadBtn(-48, -35, 30, 28, 'L');
+    drawPadBtn(18, -35, 30, 28, 'R');
+
+    if (shimmerPhase > 0) {
+      const sx = -90 + ((shimmerPhase * 220) % 240);
+      g.save();
+      g.beginPath();
+      g.rect(-76, -86, 152, 148);
+      g.clip();
+      g.fillStyle = 'rgba(255, 255, 255, 0.26)';
+      g.fillRect(sx, -90, 18, 160);
+      g.restore();
+    }
+
+    g.textAlign = 'center';
+    g.font = '900 34px "Courier New", monospace';
+    g.fillStyle = '#09090d';
+    g.fillText('FUN DUMB', 3, 108);
+    g.fillStyle = '#e5e7eb';
+    g.fillText('FUN DUMB', 0, 105);
+
+    pxRect(g, -135, 116, 270, 6, goldMain);
+    pxRect(g, -135, 116, 270, 2, goldHi);
+    pxRect(g, -148, 114, 5, 5, goldMain);
+    pxRect(g, -142, 119, 5, 5, goldMain);
+    pxRect(g, 138, 114, 5, 5, goldMain);
+    pxRect(g, 144, 119, 5, 5, goldMain);
+
+    g.font = 'bold 24px "Courier New", monospace';
+    g.fillStyle = '#9ca3af';
+    g.fillText('C R E A T I O N S', 0, 146);
+
+    g.restore();
+  }
+
+  function drawGoldenRelic(g, cx, cy, pulse = 0, scale = 1) {
+    g.save();
+    g.translate(cx, cy + Math.sin(pulse * 2) * 4);
+    g.scale(scale, scale);
+
+    g.fillStyle = 'rgba(255, 215, 64, 0.22)';
+    g.beginPath();
+    g.arc(0, 0, 34 + Math.sin(pulse * 3) * 4, 0, Math.PI * 2);
+    g.fill();
+
+    pxRect(g, -18, 6, 38, 7, '#b45309');
+    pxRect(g, -18, 3, 38, 5, '#fff59d');
+    pxRect(g, -16, -8, 24, 12, '#ffd740');
+    pxRect(g, 6, -3, 14, 7, '#ffca28');
+    pxRect(g, -16, -13, 11, 6, '#ffe57f');
+    pxRect(g, -24, -14, 10, 4, '#ffffff');
+    pxRect(g, -21, -10, 8, 3, '#ffe082');
+    pxRect(g, -2, -7, 5, 2, '#fff');
+    pxRect(g, 2, -5, 5, 2, '#fff');
+
+    g.restore();
+  }
+
+  function drawCrystalFragment(g, x, y, phase = 0) {
+    const bobY = y + Math.sin(phase + x * 0.02) * 5;
+    g.save();
+    g.translate(x, bobY);
+    g.fillStyle = 'rgba(192, 132, 252, 0.28)';
+    g.beginPath();
+    g.arc(0, 0, 17, 0, Math.PI * 2);
+    g.fill();
+
+    g.fillStyle = '#a855f7';
+    g.beginPath();
+    g.moveTo(0, -15);
+    g.lineTo(11, 0);
+    g.lineTo(0, 15);
+    g.lineTo(-11, 0);
+    g.closePath();
+    g.fill();
+
+    g.fillStyle = '#f3e8ff';
+    g.beginPath();
+    g.moveTo(0, -11);
+    g.lineTo(5, -2);
+    g.lineTo(0, 4);
+    g.lineTo(-5, -2);
+    g.closePath();
+    g.fill();
+    g.restore();
+  }
+
+  // --------------------------------------------------------------------------
+  // 6. SPLASH SCREEN, OPENING CUTSCENE & 4-SCENE ENDING SEQUENCE
+  // --------------------------------------------------------------------------
+  function startSplash() {
+    state.screen = 'splash';
+    state.splashTimer = 0;
+    uiEl.classList.remove('active', 'dim');
+    mapDrawerEl.classList.remove('visible');
+    cornerEl.innerHTML = '';
+  }
+
+  function startCutscene() {
+    state.screen = 'cutscene';
+    state.cutSceneIdx = 0;
+    state.cutTimer = 0;
+    uiEl.classList.remove('active', 'dim');
+    mapDrawerEl.classList.remove('visible');
+    renderCutsceneControls();
+  }
+
+  function renderCutsceneControls() {
+    cornerEl.innerHTML = `
+      <button class="hud-btn" style="top:14px; right:16px;" onclick="window.__game.skipToMenu()">${T('skip')}</button>
+      <button class="hud-btn" style="bottom:14px; right:16px;" onclick="window.__game.advanceCutscene()">${T('next')}</button>
+    `;
+  }
+
+  function advanceCutscene() {
+    AudioSys.sfxClick();
+    if (state.screen === 'splash') {
+      startCutscene();
+      return;
+    }
+    if (state.screen === 'cutscene') {
+      state.cutSceneIdx++;
+      state.cutTimer = 0;
+      if (state.cutSceneIdx >= 3) openMainMenu();
+      return;
+    }
+    if (state.screen === 'ending') {
+      state.endingIdx++;
+      state.endingTimer = 0;
+      if (state.endingIdx >= 4) showEndingCreditsModal();
+    }
+  }
+
+  function startEnding() {
+    AudioSys.sfxFanfare();
+    state.screen = 'ending';
+    state.endingIdx = 0;
+    state.endingTimer = 0;
+    state.endingFireworks = [];
+    uiEl.classList.remove('active', 'dim');
+    mapDrawerEl.classList.remove('visible');
+    cornerEl.innerHTML = `
+      <button class="hud-btn" style="top:14px; right:16px;" onclick="window.__game.showEndingCreditsModal()">${T('skip')}</button>
+      <button class="hud-btn" style="bottom:14px; right:16px;" onclick="window.__game.advanceCutscene()">${T('next')}</button>
+    `;
+  }
+
+  function showEndingCreditsModal() {
+    AudioSys.sfxClick();
+    state.screen = 'modal';
+    cornerEl.innerHTML = '';
+    mapDrawerEl.classList.remove('visible');
+    uiEl.classList.add('active', 'dim');
+
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <div class="badge-pill">★ ${T('endingCreditsSub')} ★</div>
+        <h2>${T('endingCreditsTitle')}</h2>
+        <p>${T('endingCreditsBody')}</p>
+        <div style="margin:0.55em 0;font-size:0.88em;color:#ffd740;font-weight:bold;">
+          🏆 ${T('achievements')}: ${Object.keys(state.ach).length} / 5
+        </div>
+        <button class="btn wide" onclick="window.__game.startEnding()">${T('replayEnding')}</button>
+        <button class="btn sec wide" onclick="window.__game.openWorldMap()">${T('worldMap')}</button>
+        <button class="btn sec wide" onclick="window.__game.openMainMenu()">${T('mainMenu')}</button>
+      </div>
+    `;
+  }
+
+  function spawnEndingFirework() {
+    const colors = ['#ffd740', '#e040fb', '#00e5ff', '#ff5252', '#69f0ae'];
+    const cx = 140 + Math.random() * (W - 280);
+    const cy = 70 + Math.random() * 190;
+    const col = colors[(Math.random() * colors.length) | 0];
+    for (let i = 0; i < 22; i++) {
+      const ang = (i * Math.PI * 2) / 22;
+      const spd = 1.5 + Math.random() * 3.5;
+      state.endingFireworks.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: 1.1 + Math.random() * 0.5,
+        color: col
+      });
+    }
+  }
+
+  function drawEnding(dt) {
+    state.endingTimer += dt;
+    const idx = state.endingIdx;
+
+    if (idx === 0) {
+      // ENDING SCENE 1: Back at the Ancient Ruin Pedestal — All 5 Golden Relics Restored!
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#1c1038');
+      grad.addColorStop(1, '#3b206e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      pxRect(ctx, 80, 60, 800, 360, '#33274d');
+      pxRect(ctx, 130, 95, 700, 325, '#201638');
+      for (let i = 0; i < 14; i++) {
+        pxRect(ctx, 150 + i * 50, 95, 14, 24 + (i % 3) * 18, '#4caf50');
+      }
+      pxRect(ctx, 0, 415, W, 125, '#3f3754');
+      pxRect(ctx, 0, 415, W, 10, '#66bb6a');
+
+      const aura = ctx.createRadialGradient(480, 280, 15, 480, 280, 260);
+      aura.addColorStop(0, 'rgba(255, 215, 64, 0.55)');
+      aura.addColorStop(0.6, 'rgba(168, 85, 247, 0.22)');
+      aura.addColorStop(1, 'rgba(255, 215, 64, 0)');
+      ctx.fillStyle = aura;
+      ctx.fillRect(0, 0, W, H);
+
+      // Stone Pedestal & Central Golden Running Shoe Relic
+      pxRect(ctx, 435, 345, 90, 70, '#675e85');
+      pxRect(ctx, 425, 335, 110, 14, '#8d83b0');
+      drawGoldenRelic(ctx, 480, 298, state.endingTimer * 3, 1.25);
+
+      // Orbiting 5 Golden Relics & 5 Crystal Fragments
+      for (let i = 0; i < 5; i++) {
+        const ang = (i * Math.PI * 2) / 5 + state.endingTimer * 1.1;
+        drawGoldenRelic(ctx, 480 + Math.cos(ang) * 95, 225 + Math.sin(ang) * 38, state.endingTimer * 3 + i, 0.65);
+        drawCrystalFragment(ctx, 480 + Math.cos(-ang) * 55, 225 + Math.sin(-ang) * 22, state.endingTimer * 4 + i);
+      }
+
+      drawExplorer(ctx, 'gear', 310, 415, state.endingTimer * 2.5, { scale: 1.55, facing: 1, celebrating: true, torchLit: true });
+      drawExplorer(ctx, 'crag', 650, 415, state.endingTimer * 2.2, { scale: 1.55, facing: -1, celebrating: true });
+    } else if (idx === 1) {
+      // ENDING SCENE 2: Golden Energy Beams Reconnect & Restore All 5 Sky Islands!
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#2a155c');
+      grad.addColorStop(0.5, '#5e35b1');
+      grad.addColorStop(1, '#311b92');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = '#fff9c4';
+      for (let i = 0; i < 55; i++) {
+        const sx = (i * 197) % W;
+        const sy = (i * 89) % (H - 120);
+        ctx.fillRect(sx, sy, 3, 3);
+      }
+
+      // Golden sky ring connecting all 5 floating islands
+      ctx.strokeStyle = 'rgba(255, 215, 64, 0.85)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      WORLDS.forEach((w, i) => {
+        const ix = 140 + i * 170;
+        const iy = 185 + (i % 2) * 50;
+        if (i === 0) ctx.moveTo(ix, iy);
+        else ctx.lineTo(ix, iy);
+      });
+      ctx.stroke();
+
+      WORLDS.forEach((w, i) => {
+        const ix = 140 + i * 170;
+        const iy = 185 + (i % 2) * 50;
+        drawMiniIslandIcon(ctx, ix, iy, i, 0.78);
+        drawGoldenRelic(ctx, ix, iy - 42, state.endingTimer * 3 + i, 0.72);
+      });
+    } else if (idx === 2) {
+      // ENDING SCENE 3: Champions of the Sky Track Victory Celebration!
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#3b7ddd');
+      grad.addColorStop(1, '#cde6ff');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Sky Stadium podium & banners
+      pxRect(ctx, 0, 415, W, 125, '#e3dcff');
+      pxRect(ctx, 0, 415, W, 12, '#9582e8');
+      pxRect(ctx, 350, 355, 260, 60, '#7e57c2');
+      pxRect(ctx, 340, 345, 280, 12, '#ffd740');
+
+      // Falling celebratory confetti
+      const confColors = ['#ffd740', '#ff4081', '#00e5ff', '#7c4dff', '#69f0ae'];
+      for (let i = 0; i < 48; i++) {
+        const cx = (i * 83 + Math.sin(state.endingTimer * 2 + i) * 28) % W;
+        const cy = ((i * 47 + state.endingTimer * 120) % (H - 95));
+        pxRect(ctx, cx, cy, 7, 5, confColors[i % confColors.length]);
+      }
+
+      drawGoldenRelic(ctx, 480, 290, state.endingTimer * 4, 1.35);
+      drawExplorer(ctx, 'gear', 415, 345, state.endingTimer * 3.5, { scale: 1.5, facing: 1, celebrating: true, torchLit: true });
+      drawExplorer(ctx, 'crag', 545, 345, state.endingTimer * 3.2, { scale: 1.5, facing: -1, celebrating: true });
+    } else {
+      // ENDING SCENE 4: Fireworks & Fun Dumb Creations Finale Banner
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#120829');
+      grad.addColorStop(1, '#2c155e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      if (Math.random() < 0.08) spawnEndingFirework();
+      for (let i = state.endingFireworks.length - 1; i >= 0; i--) {
+        const fw = state.endingFireworks[i];
+        fw.x += fw.vx;
+        fw.y += fw.vy;
+        fw.vy += 0.04;
+        fw.life -= dt;
+        if (fw.life <= 0) {
+          state.endingFireworks.splice(i, 1);
+        } else {
+          pxRect(ctx, fw.x, fw.y, 4, 4, fw.color);
+        }
+      }
+
+      drawStudioLogo(ctx, W / 2, 165, 0.78, state.endingTimer);
+      drawExplorer(ctx, 'gear', 250, 385, state.endingTimer * 3, { scale: 1.45, facing: 1, celebrating: true, torchLit: true });
+      drawExplorer(ctx, 'crag', 710, 385, state.endingTimer * 2.8, { scale: 1.45, facing: -1, celebrating: true });
+      drawGoldenRelic(ctx, W / 2, 338, state.endingTimer * 3.5, 1.25);
+    }
+
+    // Caption Box at Bottom
+    pxRect(ctx, 70, H - 96, W - 140, 74, 'rgba(17, 9, 41, 0.92)');
+    ctx.strokeStyle = '#ffd740';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(70, H - 96, W - 140, 74);
+
+    ctx.fillStyle = '#fff9e6';
+    ctx.font = 'bold 17px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    wrapCanvasText(ctx, T('endingScenes')[idx], W / 2, H - 64, W - 190, 23);
+
+    if (state.endingTimer >= 4.8) advanceCutscene();
+  }
+
+  function drawSplash(dt) {
+    state.splashTimer += dt;
+    ctx.fillStyle = '#141418';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 2;
+    for (let x = 0; x < W; x += 48) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 48) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    const alpha = Math.min(1, state.splashTimer / 0.6);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    drawStudioLogo(ctx, W / 2, H / 2 - 24, 1.15, state.splashTimer);
+    ctx.fillStyle = '#a78bfa';
+    ctx.font = 'bold 15px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(T('studioSub'), W / 2, H - 56);
+    ctx.restore();
+
+    if (state.splashTimer >= 3.2) startCutscene();
+  }
+
+  function drawCutscene(dt) {
+    state.cutTimer += dt;
+    const idx = state.cutSceneIdx;
+
+    if (idx === 0) {
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#140c24');
+      grad.addColorStop(1, '#26173d');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      pxRect(ctx, 80, 60, 800, 360, '#2e2442');
+      pxRect(ctx, 130, 95, 700, 325, '#1b132b');
+      for (let i = 0; i < 14; i++) {
+        pxRect(ctx, 150 + i * 50, 95, 14, 24 + (i % 3) * 18, '#388e3c');
+      }
+      pxRect(ctx, 0, 415, W, 125, '#37304a');
+      pxRect(ctx, 0, 415, W, 10, '#4caf50');
+
+      const torchGlow = ctx.createRadialGradient(310, 340, 10, 310, 340, 220);
+      torchGlow.addColorStop(0, 'rgba(255, 183, 77, 0.35)');
+      torchGlow.addColorStop(1, 'rgba(255, 183, 77, 0)');
+      ctx.fillStyle = torchGlow;
+      ctx.fillRect(0, 0, W, H);
+
+      pxRect(ctx, 435, 345, 90, 70, '#5a5275');
+      pxRect(ctx, 425, 335, 110, 14, '#7e759e');
+      drawGoldenRelic(ctx, 480, 302, state.cutTimer * 2, 1.15);
+
+      ctx.strokeStyle = 'rgba(192, 132, 252, 0.65)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(480, 200, 56 + Math.sin(state.cutTimer * 3) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 5; i++) {
+        const ang = (i * Math.PI * 2) / 5 + state.cutTimer * 0.6;
+        drawCrystalFragment(ctx, 480 + Math.cos(ang) * 42, 200 + Math.sin(ang) * 26, state.cutTimer * 3 + i);
+      }
+
+      drawExplorer(ctx, 'gear', 295, 415, state.cutTimer * 2, { scale: 1.55, facing: 1, torchLit: true });
+      drawExplorer(ctx, 'crag', 665, 415, state.cutTimer * 1.5, { scale: 1.55, facing: -1 });
+    } else if (idx === 1) {
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#220f4a');
+      grad.addColorStop(1, '#582c9e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = '#fff9c4';
+      for (let i = 0; i < 45; i++) {
+        const sx = (i * 197) % W;
+        const sy = (i * 89) % (H - 120);
+        const sz = ((i + (state.cutTimer * 3 | 0)) % 3 === 0) ? 4 : 2;
+        ctx.fillRect(sx, sy, sz, sz);
+      }
+
+      const prog = Math.min(1, state.cutTimer / 2.2);
+      WORLDS.forEach((w, i) => {
+        const ix = 140 + i * 170;
+        const iy = 180 + (i % 2) * 55;
+        drawMiniIslandIcon(ctx, ix, iy, i, 0.72);
+
+        ctx.strokeStyle = i % 2 === 0 ? '#ffd740' : '#e040fb';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(W / 2, H - 60);
+        ctx.lineTo(
+          W / 2 + (ix - W / 2) * prog,
+          (H - 60) + (iy - 24 - (H - 60)) * prog
+        );
+        ctx.stroke();
+
+        if (prog > 0.85) {
+          drawGoldenRelic(ctx, ix, iy - 36, state.cutTimer * 3 + i, 0.68);
+        }
+      });
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#2d165e');
+      grad.addColorStop(1, '#7c4dff');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 35; i++) ctx.fillRect((i * 173) % W, (i * 67) % 300, 3, 3);
+
+      pxRect(ctx, 370, 150, 220, 270, '#5c527a');
+      pxRect(ctx, 405, 185, 150, 235, '#190d38');
+      const pGlow = ctx.createRadialGradient(480, 300, 10, 480, 300, 110);
+      pGlow.addColorStop(0, '#ffd740');
+      pGlow.addColorStop(0.5, '#c084fc');
+      pGlow.addColorStop(1, 'rgba(124, 77, 255, 0)');
+      ctx.fillStyle = pGlow;
+      ctx.fillRect(405, 185, 150, 235);
+
+      pxRect(ctx, 0, 420, W, 120, '#3a8f3a');
+      pxRect(ctx, 0, 434, W, 106, '#6d4c41');
+
+      const runX = 180 + Math.min(250, state.cutTimer * 85);
+      drawExplorer(ctx, 'crag', runX - 60, 420, state.cutTimer * 4, { scale: 1.45, facing: 1, moving: true });
+      drawExplorer(ctx, 'gear', runX + 24, 420, state.cutTimer * 4.5, { scale: 1.45, facing: 1, moving: true, torchLit: true });
+
+      ctx.textAlign = 'center';
+      ctx.font = '900 44px "Courier New", monospace';
+      ctx.fillStyle = '#3b0764';
+      ctx.fillText('LOST RELICS: RUNNING QUEST', W / 2 + 4, 84);
+      ctx.fillStyle = '#ffd740';
+      ctx.fillText('LOST RELICS: RUNNING QUEST', W / 2, 80);
+    }
+
+    pxRect(ctx, 70, H - 96, W - 140, 74, 'rgba(17, 9, 41, 0.92)');
+    ctx.strokeStyle = '#ffd740';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(70, H - 96, W - 140, 74);
+
+    ctx.fillStyle = '#fff9e6';
+    ctx.font = 'bold 17px "Courier New", monospace';
+    ctx.textAlign = 'center';
+    wrapCanvasText(ctx, T('cutscene')[idx], W / 2, H - 64, W - 190, 23);
+
+    if (state.cutTimer >= 4.6) advanceCutscene();
+  }
+
+  function wrapCanvasText(g, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let curY = y;
+    for (let i = 0; i < words.length; i++) {
+      const test = line + words[i] + ' ';
+      if (g.measureText(test).width > maxWidth && i > 0) {
+        g.fillText(line.trim(), x, curY);
+        line = words[i] + ' ';
+        curY += lineHeight;
+      } else {
+        line = test;
+      }
+    }
+    g.fillText(line.trim(), x, curY);
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. MAIN MENU & UI SCREENS
+  // --------------------------------------------------------------------------
+  function openMainMenu() {
+    state.screen = 'menu';
+    cornerEl.innerHTML = '';
+    mapDrawerEl.classList.remove('visible');
+    uiEl.classList.add('active', 'dim');
+
+    const hasEnding = state.relics.length >= 5;
+
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <div style="font-size:0.78em;letter-spacing:0.25em;color:#ffd740;font-weight:bold;">FUN DUMB CREATIONS</div>
+        <h1>${T('gameTitle')}</h1>
+        <div class="subtitle">${T('gameSub')}</div>
+        <div class="menu-grid">
+          <button class="btn span-2" onclick="window.__game.startStory()">${T('startGame')}</button>
+          <button class="btn sec" onclick="window.__game.openWorldMap()">${T('worldMap')}</button>
+          <button class="btn sec" onclick="window.__game.openExplorers()">${T('meetExplorers')}</button>
+          <button class="btn sec" onclick="window.__game.openHowToPlay()">${T('howToPlay')}</button>
+          <button class="btn sec" onclick="window.__game.openAchievements()">${T('achievements')} (${Object.keys(state.ach).length}/5)</button>
+          <button class="btn sec" onclick="window.__game.replayIntro()">${T('watchIntro')}</button>
+          <button class="btn sec" onclick="window.__game.openOptions()">${T('options')}</button>
+          ${hasEnding ? `<button class="btn span-2" onclick="window.__game.startEnding()">${T('watchEnding')}</button>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function openHowToPlay() {
+    AudioSys.sfxClick();
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <h2>${T('howTitle')}</h2>
+        <p>${T('howIntro')}</p>
+        <div class="ctrl-grid">
+          ${T('controls').map(c => `
+            <div class="ctrl-item">
+              <div class="ctrl-key">${c.k}</div>
+              <div style="color:#e9d5ff;margin-top:0.2em;">${c.d}</div>
+            </div>
+          `).join('')}
+        </div>
+        <button class="btn sec wide" onclick="window.__game.openMainMenu()">${T('back')}</button>
+      </div>
+    `;
+  }
+
+  function openExplorers() {
+    AudioSys.sfxClick();
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <h2>${T('meetExplorers')}</h2>
+        <div class="char-grid">
+          ${['gear', 'crag'].map(key => {
+            const c = EXPLORERS[key];
+            const isSel = state.char === key;
+            return `
+              <div class="char-card ${isSel ? 'selected' : ''}">
+                <canvas id="preview_${key}" width="120" height="110"></canvas>
+                <div style="font-size:1.2em;font-weight:900;color:#ffd740;">${c.name}</div>
+                <div style="font-size:0.78em;color:#c4b5fd;">${c.role[state.lang]}</div>
+                <div class="stat-row">HP: ${'♥'.repeat(c.hp)}  |  ${c.perks[state.lang]}</div>
+                <p style="font-size:0.82em;margin:0.35em 0;">${c.desc[state.lang]}</p>
+                <button class="btn ${isSel ? '' : 'sec'}" style="min-width:10em;padding:0.45em 0.8em;" onclick="window.__game.selectChar('${key}')">
+                  ${isSel ? T('selected') : T('select')}
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <button class="btn sec wide" onclick="window.__game.openMainMenu()">${T('back')}</button>
+      </div>
+    `;
+
+    ['gear', 'crag'].forEach(key => {
+      const c = document.getElementById('preview_' + key);
+      if (c) {
+        const g = c.getContext('2d');
+        g.imageSmoothingEnabled = false;
+        drawExplorer(g, key, 58, 98, 0.8, { scale: 1.4, facing: 1, torchLit: true });
+      }
+    });
+  }
+
+  function selectChar(key) {
+    AudioSys.sfxClick();
+    state.char = key;
+    saveProgress();
+    openExplorers();
+  }
+
+  function openAchievements() {
+    AudioSys.sfxClick();
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <h2>${T('achievements')}</h2>
+        <div style="text-align:left;margin:0.6em 0;">
+          ${ACHIEVEMENTS_LIST.map(a => {
+            const unlocked = !!state.ach[a.id];
+            return `
+              <div style="display:flex;align-items:center;gap:0.7em;padding:0.45em 0.7em;margin:0.32em 0;border-radius:8px;background:${unlocked ? 'rgba(255,215,64,0.16)' : 'rgba(15,8,36,0.75)'};border:1px solid ${unlocked ? '#ffd740' : '#4c1d95'};">
+                <span style="font-size:1.35em;">${unlocked ? '★' : '☆'}</span>
+                <div>
+                  <div style="font-weight:bold;color:${unlocked ? '#ffd740' : '#9ca3af'};">${a.title[state.lang]}</div>
+                  <div style="font-size:0.84em;color:#e9d5ff;">${a.desc[state.lang]}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <button class="btn sec wide" onclick="window.__game.openMainMenu()">${T('back')}</button>
+      </div>
+    `;
+  }
+
+  function openOptions() {
+    AudioSys.sfxClick();
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <h2>${T('options')}</h2>
+        <button class="btn wide" onclick="window.__game.toggleSfx()">${state.sfx ? T('soundOn') : T('soundOff')}</button>
+        <button class="btn wide" onclick="window.__game.toggleMusic()">${state.music ? T('musicOn') : T('musicOff')}</button>
+        <button class="btn wide" onclick="window.__game.toggleTouch()">${state.showTouch ? T('touchOn') : T('touchOff')}</button>
+        <button class="btn sec wide" onclick="window.__game.toggleLang()">${T('langBtn')}</button>
+        <button class="btn sec wide" style="opacity:0.85;" onclick="window.__game.resetProgress()">${T('resetProg')}</button>
+        <button class="btn sec wide" onclick="window.__game.openMainMenu()">${T('back')}</button>
+      </div>
+    `;
+  }
+
+  function toggleSfx() { state.sfx = !state.sfx; AudioSys.sfxClick(); openOptions(); }
+  function toggleMusic() { state.music = !state.music; AudioSys.sfxClick(); openOptions(); }
+  function toggleTouch() { state.showTouch = !state.showTouch; AudioSys.sfxClick(); saveProgress(); openOptions(); }
+  function toggleLang() { state.lang = state.lang === 'id' ? 'en' : 'id'; AudioSys.sfxClick(); saveProgress(); openOptions(); }
+  function resetProgress() {
+    AudioSys.sfxClick();
+    state.unlockedWorld = 0;
+    state.selectedWorld = 0;
+    state.relics = [];
+    state.ach = {};
+    state.charsWon = {};
+    saveProgress();
+    openOptions();
+  }
+
+  // --------------------------------------------------------------------------
+  // 8. INTERACTIVE FLOATING ISLANDS OVERWORLD MAP (1 Level Node per Island)
+  // --------------------------------------------------------------------------
+  function startStory() {
+    AudioSys.sfxClick();
+    state.selectedWorld = Math.min(state.unlockedWorld, 4);
+    openWorldMap();
+  }
+
+  function openWorldMap() {
+    AudioSys.sfxClick();
+    state.screen = 'map';
+    uiEl.classList.remove('active', 'dim');
+
+    const cur = WORLDS[state.selectedWorld];
+    state.mapTargetX = cur.mapPos.x;
+    state.mapTargetY = cur.mapPos.y - 26;
+
+    cornerEl.innerHTML = `
+      <button class="hud-btn" style="top:14px; left:16px;" onclick="window.__game.openMainMenu()">← ${T('mainMenu')}</button>
+      <div style="position:absolute;top:14px;right:16px;background:rgba(20,11,46,0.88);border:2px solid #8b5cf6;border-radius:8px;padding:0.4em 0.85em;font-weight:bold;color:#ffd740;">
+        RELICS: ${state.relics.length}/5
+      </div>
+    `;
+
+    updateMapDrawer();
+  }
+
+  function updateMapDrawer() {
+    const w = WORLDS[state.selectedWorld];
+    const unlocked = state.selectedWorld <= state.unlockedWorld;
+    const claimed = state.relics.includes(state.selectedWorld);
+
+    mapDrawerEl.classList.add('visible');
+    mapDrawerEl.innerHTML = `
+      <div class="map-info">
+        <h3>${state.selectedWorld + 1}. ${w.name} ${claimed ? `<span class="badge-pill">${T('relicClaimedTag')}</span>` : ''}</h3>
+        <p><b style="color:#ffd740;">★ ${w.feat[state.lang]}:</b> ${w.desc[state.lang]}</p>
+      </div>
+      <div>
+        ${unlocked
+          ? `<button class="btn" style="min-width:12em;margin:0;" onclick="window.__game.prepareStage(${state.selectedWorld})">${T('playIsland')}</button>`
+          : `<div class="badge-pill" style="border-color:#f87171;color:#fca5a5;">🔒 ${T('lockedMsg')}</div>`
+        }
+      </div>
+    `;
+  }
+
+  function selectIslandOnMap(idx) {
+    if (idx > state.unlockedWorld) {
+      AudioSys.sfxHurt();
+      state.selectedWorld = idx;
+      updateMapDrawer();
+      return;
+    }
+    AudioSys.sfxClick();
+    state.selectedWorld = idx;
+    state.mapTargetX = WORLDS[idx].mapPos.x;
+    state.mapTargetY = WORLDS[idx].mapPos.y - 26;
+    updateMapDrawer();
+  }
+
+  function drawMiniIslandIcon(g, cx, cy, worldIdx, scale = 1) {
+    g.save();
+    g.translate(cx, cy);
+    g.scale(scale, scale);
+
+    g.fillStyle = '#4c3278';
+    g.beginPath();
+    g.moveTo(-64, 8);
+    g.lineTo(64, 8);
+    g.lineTo(18, 56);
+    g.lineTo(-14, 52);
+    g.closePath();
+    g.fill();
+
+    g.fillStyle = '#6b499e';
+    g.beginPath();
+    g.moveTo(-58, 8);
+    g.lineTo(0, 8);
+    g.lineTo(-8, 48);
+    g.closePath();
+    g.fill();
+
+    if (worldIdx === 0) {
+      pxRect(g, -64, -4, 128, 14, '#4caf50');
+      pxRect(g, -42, -34, 10, 30, '#9e9e9e');
+      pxRect(g, -18, -38, 10, 34, '#bdbdbd');
+      pxRect(g, -44, -40, 38, 8, '#cfd8dc');
+      pxRect(g, 24, -26, 22, 18, '#2e7d32');
+      pxRect(g, 32, -10, 6, 8, '#6d4c41');
+      pxRect(g, -18, 8, 12, 34, '#4fc3f7');
+    } else if (worldIdx === 1) {
+      pxRect(g, -64, -4, 128, 14, '#c89d66');
+      pxRect(g, -42, -38, 22, 34, '#d9b382');
+      pxRect(g, -14, -48, 28, 44, '#e6c598');
+      pxRect(g, 20, -34, 22, 30, '#c89d66');
+      pxRect(g, -48, -32, 8, 16, '#7c3aed');
+      pxRect(g, 42, -32, 8, 16, '#ef4444');
+    } else if (worldIdx === 2) {
+      pxRect(g, -64, -4, 128, 14, '#e3f2fd');
+      g.fillStyle = '#90a4ae';
+      g.beginPath(); g.moveTo(-54, -4); g.lineTo(-4, -56); g.lineTo(48, -4); g.fill();
+      g.fillStyle = '#ffffff';
+      g.beginPath(); g.moveTo(-28, -30); g.lineTo(-4, -56); g.lineTo(20, -30); g.fill();
+      pxRect(g, -14, -22, 26, 18, '#1e293b');
+      pxRect(g, -6, -18, 10, 14, '#00e5ff');
+    } else if (worldIdx === 3) {
+      pxRect(g, -64, -4, 128, 14, '#e6a15c');
+      pxRect(g, -46, -34, 26, 30, '#c85a32');
+      pxRect(g, 18, -38, 28, 34, '#d96b38');
+      pxRect(g, -12, -22, 6, 18, '#2e7d32');
+      pxRect(g, 46, -20, 6, 16, '#2e7d32');
+    } else {
+      pxRect(g, -64, -4, 128, 14, '#d4c8f0');
+      pxRect(g, -44, -34, 88, 30, '#e6c280');
+      for (let c = -36; c <= 32; c += 14) pxRect(g, c, -30, 5, 22, '#6d4c41');
+      pxRect(g, -22, -44, 44, 10, '#ffe082');
+      pxRect(g, -18, 2, 46, 10, '#29b6f6');
+    }
+
+    g.restore();
+  }
+
+  function drawWorldMap(dt) {
+    state.mapPulse += dt * 3;
+
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#361c69');
+    grad.addColorStop(0.5, '#543096');
+    grad.addColorStop(1, '#3b1f73');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = '#fff9c4';
+    for (let i = 0; i < 65; i++) {
+      const sx = (i * 157 + 31) % W;
+      const sy = (i * 97 + 19) % H;
+      const sz = ((i + (state.mapPulse | 0)) % 4 === 0) ? 4 : 2;
+      ctx.fillRect(sx, sy, sz, sz);
+    }
+
+    ctx.fillStyle = '#7e57c2';
+    for (let i = 0; i < 16; i++) {
+      ctx.beginPath();
+      ctx.arc(i * 68, 14, 46, 0, Math.PI * 2);
+      ctx.arc(i * 68, H - 10, 50, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#9575cd';
+    for (let i = 0; i < 10; i++) {
+      ctx.beginPath();
+      ctx.arc(12, i * 62, 44, 0, Math.PI * 2);
+      ctx.arc(W - 12, i * 62, 44, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const archX = 480, archY = 266;
+    pxRect(ctx, archX - 34, archY - 38, 14, 52, '#78718c');
+    pxRect(ctx, archX + 20, archY - 38, 14, 52, '#78718c');
+    pxRect(ctx, archX - 38, archY - 48, 76, 14, '#948da8');
+    pxRect(ctx, archX - 42, archY + 12, 84, 8, '#57506b');
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.82)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([7, 7]);
+    ctx.beginPath();
+    ctx.moveTo(112, 278);
+    WORLDS.forEach(w => ctx.lineTo(w.mapPos.x, w.mapPos.y));
+    ctx.stroke();
+    ctx.restore();
+
+    drawStar(ctx, 112, 278, 5, 16, 7, '#fff59d', '#ffd740');
+
+    WORLDS.forEach((w, idx) => {
+      const { x, y } = w.mapPos;
+      const unlocked = idx <= state.unlockedWorld;
+      const isSelected = idx === state.selectedWorld;
+      const claimed = state.relics.includes(idx);
+
+      ctx.save();
+      if (!unlocked) ctx.filter = 'brightness(0.55) saturate(0.5)';
+      drawMiniIslandIcon(ctx, x, y, idx, isSelected ? 1.07 : 0.96);
+      ctx.restore();
+
+      const nodeY = y + 6;
+      const glowR = isSelected ? 18 + Math.sin(state.mapPulse * 2) * 3 : 14;
+      ctx.fillStyle = isSelected ? 'rgba(255, 215, 64, 0.35)' : 'rgba(192, 132, 252, 0.25)';
+      ctx.beginPath();
+      ctx.arc(x, nodeY, glowR, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = claimed ? '#ffd740' : '#f59e0b';
+      ctx.beginPath();
+      ctx.ellipse(x, nodeY, 14, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = unlocked ? '#a855f7' : '#4b5563';
+      ctx.beginPath();
+      ctx.ellipse(x, nodeY - 1, 10, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (unlocked) {
+        ctx.fillStyle = '#f3e8ff';
+        ctx.fillRect(x - 3, nodeY - 3, 4, 2);
+      }
+
+      ctx.font = 'bold 13px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#140b2e';
+      ctx.fillText(`${idx + 1}. ${w.name}`, x + 1, y - 56);
+      ctx.fillStyle = isSelected ? '#ffd740' : '#ffffff';
+      ctx.fillText(`${idx + 1}. ${w.name}`, x, y - 57);
+
+      if (claimed) {
+        drawGoldenRelic(ctx, x + 46, y - 44, state.mapPulse + idx, 0.55);
+      }
+    });
+
+    const dx = state.mapTargetX - state.mapExplorerX;
+    state.mapExplorerX += dx * Math.min(1, dt * 6);
+    state.mapExplorerY += (state.mapTargetY - state.mapExplorerY) * Math.min(1, dt * 6);
+    drawExplorer(ctx, state.char, state.mapExplorerX, state.mapExplorerY, state.mapPulse * 2.5, {
+      scale: 0.78,
+      facing: dx < -1 ? -1 : 1,
+      moving: Math.abs(dx) > 2,
+      torchLit: true
+    });
+  }
+
+  function drawStar(g, cx, cy, spikes, outerR, innerR, fill, stroke) {
+    let rot = (Math.PI / 2) * 3;
+    const step = Math.PI / spikes;
+    g.beginPath();
+    g.moveTo(cx, cy - outerR);
+    for (let i = 0; i < spikes; i++) {
+      g.lineTo(cx + Math.cos(rot) * outerR, cy + Math.sin(rot) * outerR);
+      rot += step;
+      g.lineTo(cx + Math.cos(rot) * innerR, cy + Math.sin(rot) * innerR);
+      rot += step;
+    }
+    g.closePath();
+    g.fillStyle = fill;
+    g.fill();
+    g.strokeStyle = stroke;
+    g.lineWidth = 2;
+    g.stroke();
+  }
+
+  // --------------------------------------------------------------------------
+  // 9. CONTROLLABLE 2D PLATFORMER-RUNNER GAMEPLAY ENGINE
+  // --------------------------------------------------------------------------
+  const keys = { left: false, right: false, down: false, jumpHeld: false };
+
+  const run = {
+    worldIdx: 0,
+    length: 4400,
+    camX: 0,
+    hp: 3,
+    frag: 0,
+    tookDamage: false,
+    quizShown: false,
+    anim: 0,
+    invuln: 0,
+    boostTimer: 0,
+    windPhase: 0,
+    inQuicksand: false,
+    finalSprint: false,
+    blocks: [],
+    items: [],
+    particles: [],
+    shockwaves: [],
+    player: {
+      x: 160,
+      y: GROUND_Y,
+      prevX: 160,
+      prevY: GROUND_Y,
+      vx: 0,
+      vy: 0,
+      facing: 1,
+      grounded: true,
+      onWall: 0,
+      crouching: false,
+      slideTimer: 0,
+      dashTimer: 0,
+      dashCooldown: 0,
+      slamming: false,
+      actionTimer: 0,
+      actionCooldown: 0,
+      coyoteTimer: 0,
+      jumpBuffer: 0,
+      usedDoubleJump: false,
+      airBoostFlash: 0
+    }
+  };
+
+  function prepareStage(worldIdx) {
+    AudioSys.sfxClick();
+    state.selectedWorld = worldIdx;
+    state.screen = 'modal';
+    mapDrawerEl.classList.remove('visible');
+    cornerEl.innerHTML = '';
+    uiEl.classList.add('active', 'dim');
+
+    const w = WORLDS[worldIdx];
+    const exp = EXPLORERS[state.char];
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <div class="subtitle">ISLAND ${worldIdx + 1} / 5</div>
+        <h2>${w.name}</h2>
+        <div class="badge-pill">★ ${w.feat[state.lang]}</div>
+        <p>${w.desc[state.lang]}</p>
+        <div style="background:rgba(124,58,237,0.22);border:1px solid #8b5cf6;border-radius:8px;padding:0.6em 0.9em;margin:0.5em 0;">
+          <b style="color:#ffd740;">${T('runTipLabel')}</b> ${w.tip[state.lang]}
+        </div>
+        <div style="font-size:0.84em;color:#c4b5fd;margin-bottom:0.4em;">
+          <b>${exp.name}:</b> ${exp.perks[state.lang]}
+        </div>
+        <button class="btn wide" onclick="window.__game.launchRun(${worldIdx})">${T('startRun')}</button>
+        <button class="btn sec wide" onclick="window.__game.openWorldMap()">${T('worldMap')}</button>
+      </div>
+    `;
+  }
+
+  function buildStageLayout(worldIdx) {
+    run.blocks = [];
+    run.items = [];
+    run.particles = [];
+    run.shockwaves = [];
+
+    const L = run.length;
+
+    const f1 = Math.round(L * 0.16);
+    const f2 = Math.round(L * 0.34);
+    const f3 = Math.round(L * 0.66);
+    const f4 = Math.round(L * 0.84);
+
+    if (worldIdx === 0) {
+      run.items.push({ type: 'shroom', x: f1 - 95, squish: 0 });
+      run.items.push({ type: 'frag', x: f1, y: GROUND_Y - 190 });
+      run.items.push({ type: 'hurdle', x: f1 + 180 });
+
+      run.blocks.push({ x: f2 - 140, y: GROUND_Y - 165, w: 36, h: 165, style: 'ruin' });
+      run.blocks.push({ x: f2 - 140, y: GROUND_Y - 165, w: 190, h: 24, style: 'ruin' });
+      run.items.push({ type: 'frag', x: f2 + 10, y: GROUND_Y - 205 });
+      run.items.push({ type: 'rock', x: f2 - 40 });
+
+      run.blocks.push({ x: f3 - 110, y: GROUND_Y - 115, w: 220, h: 22, style: 'ruin' });
+      run.items.push({ type: 'frag', x: f3, y: GROUND_Y - 155 });
+      run.items.push({ type: 'rock', x: f3 - 20 });
+
+      run.items.push({ type: 'shroom', x: f4 - 110, squish: 0 });
+      run.items.push({ type: 'frag', x: f4, y: GROUND_Y - 210 });
+    } else if (worldIdx === 1) {
+      run.items.push({ type: 'pad', x: f1 - 150 });
+      run.items.push({ type: 'banner', x: f1 - 35 });
+      run.items.push({ type: 'frag', x: f1, y: GROUND_Y - 36 });
+
+      run.blocks.push({ x: f2 - 180, y: GROUND_Y - 95, w: 120, h: 20, style: 'city' });
+      run.blocks.push({ x: f2 - 30, y: GROUND_Y - 180, w: 140, h: 22, style: 'city' });
+      run.items.push({ type: 'frag', x: f2 + 40, y: GROUND_Y - 220 });
+      run.items.push({ type: 'drone', x: f2 - 80 });
+
+      run.items.push({ type: 'pad', x: f3 - 160 });
+      run.items.push({ type: 'drone', x: f3 - 30 });
+      run.items.push({ type: 'frag', x: f3, y: GROUND_Y - 34 });
+
+      run.blocks.push({ x: f4 - 130, y: GROUND_Y - 175, w: 34, h: 175, style: 'city' });
+      run.blocks.push({ x: f4 - 130, y: GROUND_Y - 175, w: 185, h: 22, style: 'city' });
+      run.items.push({ type: 'frag', x: f4 + 15, y: GROUND_Y - 215 });
+    } else if (worldIdx === 2) {
+      run.items.push({ type: 'icespike', x: f1 - 70 });
+      run.items.push({ type: 'frag', x: f1, y: GROUND_Y - 34 });
+
+      run.blocks.push({ x: f2 - 150, y: GROUND_Y - 110, w: 130, h: 22, style: 'ice' });
+      run.blocks.push({ x: f2 + 10, y: GROUND_Y - 190, w: 130, h: 22, style: 'ice' });
+      run.items.push({ type: 'frag', x: f2 + 75, y: GROUND_Y - 230 });
+
+      run.blocks.push({ x: f3 - 110, y: GROUND_Y - 92, w: 220, h: 22, style: 'ice' });
+      run.items.push({ type: 'frag', x: f3, y: GROUND_Y - 28 });
+
+      run.blocks.push({ x: f4 - 120, y: GROUND_Y - 170, w: 36, h: 170, style: 'ice' });
+      run.blocks.push({ x: f4 - 120, y: GROUND_Y - 170, w: 180, h: 22, style: 'ice' });
+      run.items.push({ type: 'frag', x: f4 + 20, y: GROUND_Y - 210 });
+    } else if (worldIdx === 3) {
+      run.items.push({ type: 'sand', x: f1 - 48 });
+      run.items.push({ type: 'frag', x: f1, y: GROUND_Y - 135 });
+
+      run.blocks.push({ x: f2 - 160, y: GROUND_Y - 105, w: 125, h: 105, style: 'desert' });
+      run.blocks.push({ x: f2 - 15, y: GROUND_Y - 185, w: 135, h: 185, style: 'desert' });
+      run.items.push({ type: 'frag', x: f2 + 52, y: GROUND_Y - 225 });
+
+      run.blocks.push({ x: f3 - 95, y: GROUND_Y - 115, w: 190, h: 24, style: 'desert' });
+      run.items.push({ type: 'frag', x: f3, y: GROUND_Y - 155 });
+      run.items.push({ type: 'cactus', x: f3 - 10 });
+
+      run.blocks.push({ x: f4 - 110, y: GROUND_Y - 160, w: 160, h: 160, style: 'desert' });
+      run.items.push({ type: 'frag', x: f4 - 30, y: GROUND_Y - 200 });
+    } else {
+      run.blocks.push({ x: f1 - 90, y: GROUND_Y - 120, w: 180, h: 18, style: 'sky' });
+      run.items.push({ type: 'frag', x: f1, y: GROUND_Y - 160 });
+
+      run.blocks.push({ x: f2 - 170, y: GROUND_Y - 115, w: 130, h: 18, style: 'sky' });
+      run.blocks.push({ x: f2 - 10, y: GROUND_Y - 215, w: 150, h: 18, style: 'sky' });
+      run.items.push({ type: 'frag', x: f2 + 65, y: GROUND_Y - 255 });
+
+      run.blocks.push({ x: f3 - 100, y: GROUND_Y - 135, w: 200, h: 18, style: 'sky' });
+      run.items.push({ type: 'laser', x: f3 - 35 });
+      run.items.push({ type: 'frag', x: f3, y: GROUND_Y - 175 });
+
+      run.blocks.push({ x: f4 - 140, y: GROUND_Y - 130, w: 120, h: 18, style: 'sky' });
+      run.blocks.push({ x: f4 + 10, y: GROUND_Y - 225, w: 140, h: 18, style: 'sky' });
+      run.items.push({ type: 'frag', x: f4 + 80, y: GROUND_Y - 265 });
+    }
+
+    const worldObs = [
+      ['rock', 'hurdle', 'shroom'],
+      ['cone', 'banner', 'drone', 'pad'],
+      ['icespike', 'snowball', 'icicle'],
+      ['cactus', 'tumbleweed', 'sand'],
+      ['orb', 'laser']
+    ][worldIdx];
+
+    const keySpots = [160, f1, f2, f3, f4, L * 0.5, L - 220];
+    let cursor = 520;
+    while (cursor < L - 440) {
+      const tooCloseToSpot = keySpots.some(kx => Math.abs(kx - cursor) < 250);
+      const tooCloseToBlock = run.blocks.some(b => cursor > b.x - 90 && cursor < b.x + b.w + 90);
+      if (tooCloseToSpot || tooCloseToBlock) {
+        cursor += 170;
+        continue;
+      }
+      const kind = worldObs[(Math.random() * worldObs.length) | 0];
+      run.items.push({
+        type: kind,
+        x: cursor,
+        offsetX: 0,
+        dropY: GROUND_Y - 180,
+        squish: 0,
+        smashed: false
+      });
+      cursor += 360 + Math.random() * 210;
+    }
+  }
+
+  function launchRun(worldIdx) {
+    AudioSys.sfxClick();
+    const exp = EXPLORERS[state.char];
+    run.worldIdx = worldIdx;
+    run.length = 4400 + worldIdx * 500;
+    run.camX = 0;
+    run.hp = exp.hp;
+    run.frag = 0;
+    run.tookDamage = false;
+    run.quizShown = false;
+    run.anim = 0;
+    run.invuln = 60;
+    run.boostTimer = 0;
+    run.windPhase = 0;
+    run.inQuicksand = false;
+    run.finalSprint = false;
+
+    run.player = {
+      x: 160,
+      y: GROUND_Y,
+      prevX: 160,
+      prevY: GROUND_Y,
+      vx: 0,
+      vy: 0,
+      facing: 1,
+      grounded: true,
+      onWall: 0,
+      crouching: false,
+      slideTimer: 0,
+      dashTimer: 0,
+      dashCooldown: 0,
+      slamming: false,
+      actionTimer: 0,
+      actionCooldown: 0,
+      coyoteTimer: 0,
+      jumpBuffer: 0,
+      usedDoubleJump: false,
+      airBoostFlash: 0
+    };
+
+    buildStageLayout(worldIdx);
+    resumeRun();
+  }
+
+  function resumeRun() {
+    state.screen = 'play';
+    uiEl.classList.remove('active', 'dim');
+    mapDrawerEl.classList.remove('visible');
+
+    const touchHtml = state.showTouch ? `
+      <div class="touch-cluster-left">
+        <button class="pad-btn" id="pad_left">◀</button>
+        <button class="pad-btn" id="pad_right">▶</button>
+        <button class="pad-btn" id="pad_down">▼</button>
+      </div>
+      <div class="touch-cluster-right">
+        <button class="pad-btn" id="pad_dash">⚡DASH</button>
+        <button class="pad-btn" id="pad_act">${state.char === 'gear' ? '🔥ACT' : '⛏️ACT'}</button>
+        <button class="pad-btn gold" id="pad_jump">▲JUMP</button>
+      </div>
+    ` : '';
+
+    cornerEl.innerHTML = `
+      <button class="hud-btn" style="top:10px; right:14px;" onclick="window.__game.pauseRun()">⏸</button>
+      ${touchHtml}
+    `;
+
+    if (state.showTouch) bindTouchControls();
+  }
+
+  function bindTouchControls() {
+    const bindHold = (id, keyName, onPress) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const down = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        el.classList.add('pressed');
+        if (keyName) keys[keyName] = true;
+        if (onPress) onPress();
+      };
+      const up = (e) => {
+        e.preventDefault();
+        el.classList.remove('pressed');
+        if (keyName) keys[keyName] = false;
+        if (keyName === 'jumpHeld') releaseJump();
+      };
+      el.addEventListener('pointerdown', down);
+      el.addEventListener('pointerup', up);
+      el.addEventListener('pointerleave', up);
+      el.addEventListener('pointercancel', up);
+    };
+
+    bindHold('pad_left', 'left');
+    bindHold('pad_right', 'right');
+    bindHold('pad_down', 'down', () => triggerDownAction());
+    bindHold('pad_jump', 'jumpHeld', () => triggerJump());
+    bindHold('pad_dash', null, () => triggerDash());
+    bindHold('pad_act', null, () => triggerSpecialAction());
+  }
+
+  function pauseRun() {
+    if (state.screen !== 'play') return;
+    AudioSys.sfxClick();
+    keys.left = keys.right = keys.down = keys.jumpHeld = false;
+    state.screen = 'modal';
+    uiEl.classList.add('active', 'dim');
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <h2>${T('pauseTitle')}</h2>
+        <button class="btn wide" onclick="window.__game.resumeRun()">${T('resume')}</button>
+        <button class="btn sec wide" onclick="window.__game.launchRun(${run.worldIdx})">${T('tryAgain')}</button>
+        <button class="btn sec wide" onclick="window.__game.openWorldMap()">${T('toMap')}</button>
+      </div>
+    `;
+  }
+
+  function spawnParticles(x, y, color, count = 8, spread = 6) {
+    for (let i = 0; i < count; i++) {
+      run.particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * spread,
+        vy: -Math.random() * 5 - 1,
+        life: 20 + Math.random() * 14,
+        color
+      });
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // PLAYER MOVEMENT ACTIONS (Jump, Double Jump, Wall-Jump, Slide, Slam, Dash, Action)
+  // --------------------------------------------------------------------------
+  function triggerJump() {
+    if (state.screen !== 'play') return;
+    const p = run.player;
+    const exp = EXPLORERS[state.char];
+    const windPenalty = (run.worldIdx === 3 && run.windPhase > 0.45) ? 1.0 : 0;
+
+    if (p.grounded || p.coyoteTimer > 0) {
+      p.vy = -(exp.jumpPower - windPenalty);
+      p.grounded = false;
+      p.coyoteTimer = 0;
+      p.slideTimer = 0;
+      p.crouching = false;
+      p.slamming = false;
+      p.usedDoubleJump = false;
+      AudioSys.sfxJump();
+      spawnParticles(p.x, p.y, '#e9d5ff', 6);
+    } else if (p.onWall !== 0) {
+      p.vx = -p.onWall * 8.6;
+      p.vy = -(exp.jumpPower * 0.94);
+      p.facing = -p.onWall;
+      p.onWall = 0;
+      p.slamming = false;
+      p.usedDoubleJump = false;
+      AudioSys.sfxWallJump();
+      spawnParticles(p.x, p.y - 24, '#ffd740', 10);
+    } else if (!p.usedDoubleJump) {
+      p.vy = -(exp.doubleJumpPower - windPenalty);
+      p.usedDoubleJump = true;
+      p.slamming = false;
+      p.airBoostFlash = 16;
+      AudioSys.sfxDoubleJump();
+      spawnParticles(
+        p.x,
+        p.y - 12,
+        state.char === 'gear' ? '#ff9800' : '#c084fc',
+        12
+      );
+    } else {
+      p.jumpBuffer = 8;
+    }
+  }
+
+  function releaseJump() {
+    const p = run.player;
+    if (p.vy < -4.5 && !p.slamming) {
+      p.vy *= 0.55;
+    }
+  }
+
+  function triggerDownAction() {
+    if (state.screen !== 'play') return;
+    const p = run.player;
+
+    if (p.grounded) {
+      if (Math.abs(p.vx) > 2.2 && p.slideTimer <= 0) {
+        p.slideTimer = run.worldIdx === 2 ? 56 : 36;
+        p.vx = p.facing * (run.worldIdx === 2 ? 10.5 : 8.8);
+        AudioSys.sfxSlide();
+        spawnParticles(p.x, p.y, run.worldIdx === 2 ? '#b3e5fc' : '#e9d5ff', 8);
+      } else {
+        p.crouching = true;
+      }
+    } else if (!p.slamming) {
+      p.slamming = true;
+      p.dashTimer = 0;
+      p.vx *= 0.35;
+      p.vy = 18.5;
+      AudioSys.sfxDash();
+    }
+  }
+
+  function triggerDash() {
+    if (state.screen !== 'play') return;
+    const p = run.player;
+    if (p.dashCooldown > 0 || p.dashTimer > 0) return;
+
+    p.dashTimer = 14;
+    p.dashCooldown = 48;
+    p.slamming = false;
+    p.slideTimer = 0;
+    p.crouching = false;
+    p.vy = 0;
+    p.vx = p.facing * (state.char === 'gear' ? 13.5 : 12.2);
+    AudioSys.sfxDash();
+    spawnParticles(
+      p.x,
+      p.y - 26,
+      state.char === 'gear' ? '#ff6d00' : '#a855f7',
+      14,
+      8
+    );
+  }
+
+  function triggerSpecialAction() {
+    if (state.screen !== 'play') return;
+    const p = run.player;
+    if (p.actionCooldown > 0) return;
+
+    p.actionTimer = 14;
+    p.actionCooldown = 24;
+    AudioSys.sfxAction();
+    spawnParticles(
+      p.x + p.facing * 26,
+      p.y - 28,
+      state.char === 'gear' ? '#ffd740' : '#e879f9',
+      10,
+      7
+    );
+  }
+
+  function triggerLandingSlamShockwave(x, y) {
+    AudioSys.sfxSlam();
+    const isGear = state.char === 'gear';
+    run.shockwaves.push({
+      x, y,
+      radius: 14,
+      maxRadius: isGear ? 95 : 125,
+      color: isGear ? '#ff9800' : '#c084fc',
+      life: 16
+    });
+    spawnParticles(x, y, isGear ? '#ff6d00' : '#c084fc', 16, 9);
+
+    const reach = isGear ? 85 : 115;
+    for (const it of run.items) {
+      if (it.smashed) continue;
+      const sx = it.x + (it.offsetX || 0);
+      const box = getObstacleBox(it, sx);
+      if (box.breakable && Math.abs((box.x + box.w / 2) - x) < reach && Math.abs((box.y + box.h) - y) < 60) {
+        it.smashed = true;
+        AudioSys.sfxSmash();
+        spawnParticles(box.x + box.w / 2, box.y + box.h / 2, '#d1d5db', 12);
+      }
+    }
+  }
+
+  function getObstacleBox(it, x) {
+    switch (it.type) {
+      case 'rock':       return { x, y: GROUND_Y - 36, w: 38, h: 36, breakable: true };
+      case 'hurdle':     return { x, y: GROUND_Y - 46, w: 32, h: 46, breakable: true };
+      case 'shroom':     return { x, y: GROUND_Y - 28, w: 44, h: 28 };
+      case 'cone':       return { x, y: GROUND_Y - 40, w: 34, h: 40, breakable: true };
+      case 'banner':     return { x, y: GROUND_Y - 104, w: 76, h: 52 };
+      case 'drone':      return { x, y: GROUND_Y - 94 + Math.sin(run.anim * 2.5 + it.x) * 10, w: 48, h: 28, breakable: true };
+      case 'pad':        return { x, y: GROUND_Y - 9, w: 66, h: 9 };
+      case 'icespike':   return { x, y: GROUND_Y - 46, w: 36, h: 46, breakable: true };
+      case 'snowball':   return { x, y: GROUND_Y - 38, w: 38, h: 38, breakable: true };
+      case 'icicle':     return { x, y: it.dropY, w: 34, h: 46 };
+      case 'cactus':     return { x, y: GROUND_Y - 64, w: 32, h: 64, breakable: true };
+      case 'tumbleweed': return { x, y: GROUND_Y - 34 - Math.abs(Math.sin(run.anim * 2.1 + it.x)) * 38, w: 32, h: 32, breakable: true };
+      case 'sand':       return { x, y: GROUND_Y - 6, w: 96, h: 14 };
+      case 'orb':        return { x, y: GROUND_Y - 72 + Math.sin(run.anim * 2 + it.x) * 34, w: 32, h: 32 };
+      case 'laser':      return { x, y: GROUND_Y - 104, w: 72, h: 50 };
+      default:           return { x, y: GROUND_Y - 36, w: 36, h: 36 };
+    }
+  }
+
+  function boxesOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // --------------------------------------------------------------------------
+  // QUIZ CHECKPOINT, FAIL & STAGE COMPLETION (TRIGGERS ENDING AT 5/5 RELICS)
+  // --------------------------------------------------------------------------
+  function triggerCheckpointQuiz() {
+    keys.left = keys.right = keys.down = keys.jumpHeld = false;
+    state.screen = 'modal';
+    cornerEl.innerHTML = '';
+    uiEl.classList.add('active', 'dim');
+    const w = WORLDS[run.worldIdx];
+    const qText = w.quiz.q[state.lang];
+    const opts = w.quiz.a[state.lang];
+
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <div class="subtitle">${T('checkpointSub')}</div>
+        <h2>${T('checkpointTitle')}</h2>
+        <p style="font-size:1.05em;font-weight:bold;color:#fff;">${qText}</p>
+        ${opts.map((opt, i) => `
+          <button class="btn sec quiz-opt" onclick="window.__game.answerQuiz(${i})">${String.fromCharCode(65 + i)}. ${opt}</button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function answerQuiz(idx) {
+    const w = WORLDS[run.worldIdx];
+    if (idx === w.quiz.c) {
+      AudioSys.sfxCorrect();
+      run.frag++;
+      run.boostTimer = 110;
+      state.ach.first = true;
+      uiEl.innerHTML = `
+        <div class="stone-panel">
+          <h2>${T('correctTitle')}</h2>
+          <p>${w.quiz.e[state.lang]}</p>
+          <button class="btn wide" onclick="window.__game.resumeRun()">${T('continueRun')}</button>
+        </div>
+      `;
+    } else {
+      AudioSys.sfxHurt();
+      state.perfectQuiz = false;
+      uiEl.innerHTML = `
+        <div class="stone-panel">
+          <h2 style="color:#f87171;">${T('wrongTitle')}</h2>
+          <p>${w.quiz.e[state.lang]}</p>
+          <button class="btn wide" onclick="window.__game.triggerCheckpointQuiz()">${T('tryAgain')}</button>
+        </div>
+      `;
+    }
+  }
+
+  function handleStageFail() {
+    keys.left = keys.right = keys.down = keys.jumpHeld = false;
+    AudioSys.sfxHurt();
+    state.screen = 'modal';
+    cornerEl.innerHTML = '';
+    uiEl.classList.add('active', 'dim');
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <h2 style="color:#f87171;">${T('outOfHpTitle')}</h2>
+        <p>${T('outOfHpBody')}</p>
+        <button class="btn wide" onclick="window.__game.launchRun(${run.worldIdx})">${T('tryAgain')}</button>
+        <button class="btn sec wide" onclick="window.__game.openWorldMap()">${T('toMap')}</button>
+      </div>
+    `;
+  }
+
+  function handleStageFinish() {
+    keys.left = keys.right = keys.down = keys.jumpHeld = false;
+    state.screen = 'modal';
+    cornerEl.innerHTML = '';
+    uiEl.classList.add('active', 'dim');
+
+    if (run.frag < 5) {
+      AudioSys.sfxHurt();
+      run.player.x -= 60;
+      uiEl.innerHTML = `
+        <div class="stone-panel">
+          <h2>${T('notEnoughTitle')} (${run.frag}/5)</h2>
+          <p>${T('notEnoughBody')}</p>
+          <button class="btn wide" onclick="window.__game.resumeRun()">${T('continueRun')}</button>
+          <button class="btn sec wide" onclick="window.__game.launchRun(${run.worldIdx})">${T('tryAgain')}</button>
+        </div>
+      `;
+      return;
+    }
+
+    const wasIncomplete = state.relics.length < 5;
+    if (!state.relics.includes(run.worldIdx)) state.relics.push(run.worldIdx);
+    if (run.worldIdx === state.unlockedWorld && state.unlockedWorld < 4) {
+      state.unlockedWorld++;
+      state.selectedWorld = state.unlockedWorld;
+    }
+
+    state.ach.first = true;
+    if (!run.tookDamage) state.ach.clean = true;
+    state.charsWon[state.char] = true;
+    if (state.charsWon.gear && state.charsWon.crag) state.ach.duo = true;
+    if (state.relics.length >= 5) {
+      state.ach.all = true;
+      if (state.perfectQuiz) state.ach.brain = true;
+    }
+    saveProgress();
+
+    // Automatically launch the 4-Scene Animated Ending Sequence when all 5 Relics are collected!
+    if (state.relics.length >= 5 && (wasIncomplete || run.worldIdx === 4)) {
+      startEnding();
+      return;
+    }
+
+    AudioSys.sfxRelic();
+    uiEl.innerHTML = `
+      <div class="stone-panel">
+        <div class="badge-pill">RELIC ${state.relics.length} / 5</div>
+        <h2>${T('relicTitle')}</h2>
+        <p><b>${WORLDS[run.worldIdx].name}</b> ${run.tookDamage ? '' : '— ★ ' + ACHIEVEMENTS_LIST[1].title[state.lang]}</p>
+        <button class="btn wide" onclick="window.__game.openWorldMap()">${T('nextIslandBtn')}</button>
+      </div>
+    `;
+  }
+
+  // --------------------------------------------------------------------------
+  // 10. PHYSICS, SOLID BLOCK COLLISIONS & CAMERA TRACKING
+  // --------------------------------------------------------------------------
+  function updateGameplay(dt) {
+    const w = WORLDS[run.worldIdx];
+    const p = run.player;
+    const exp = EXPLORERS[state.char];
+
+    if (run.invuln > 0) run.invuln = Math.max(0, run.invuln - dt);
+    if (run.boostTimer > 0) run.boostTimer = Math.max(0, run.boostTimer - dt);
+    if (p.slideTimer > 0) p.slideTimer = Math.max(0, p.slideTimer - dt);
+    if (p.dashTimer > 0) p.dashTimer = Math.max(0, p.dashTimer - dt);
+    if (p.dashCooldown > 0) p.dashCooldown = Math.max(0, p.dashCooldown - dt);
+    if (p.actionTimer > 0) p.actionTimer = Math.max(0, p.actionTimer - dt);
+    if (p.actionCooldown > 0) p.actionCooldown = Math.max(0, p.actionCooldown - dt);
+    if (p.airBoostFlash > 0) p.airBoostFlash = Math.max(0, p.airBoostFlash - dt);
+
+    run.windPhase = run.worldIdx === 3 ? Math.sin(p.x * 0.0022) : 0;
+    run.finalSprint = (run.worldIdx === 4 && p.x > run.length * 0.72);
+
+    let maxSpd = exp.maxSpeed;
+    if (run.boostTimer > 0) maxSpd += 3.0;
+    if (run.finalSprint) maxSpd += 1.6;
+    if (run.inQuicksand) maxSpd *= 0.56;
+
+    const moveDir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+
+    if (p.dashTimer > 0) {
+      p.vx = p.facing * (state.char === 'gear' ? 13.5 : 12.2);
+      p.vy = 0;
+      if (((p.dashTimer * 2) | 0) % 2 === 0) {
+        spawnParticles(p.x - p.facing * 12, p.y - 24, state.char === 'gear' ? '#ff9800' : '#c084fc', 2, 3);
+      }
+    } else if (p.slideTimer > 0) {
+      const slideFriction = run.worldIdx === 2 ? 0.992 : 0.955;
+      p.vx *= Math.pow(slideFriction, dt);
+      if (Math.abs(p.vx) < 2.2) p.slideTimer = 0;
+    } else {
+      if (moveDir !== 0) {
+        p.facing = moveDir;
+        p.crouching = false;
+        const accel = p.grounded ? 0.85 : 0.58;
+        let targetVx = moveDir * maxSpd;
+        if (run.worldIdx === 3 && run.windPhase > 0.45 && moveDir > 0) targetVx -= 1.5;
+        p.vx += (targetVx - p.vx) * Math.min(1, accel * 0.25 * dt);
+      } else {
+        const friction = (p.grounded && run.worldIdx === 2) ? 0.92 : (p.grounded ? 0.78 : 0.92);
+        p.vx *= Math.pow(friction, dt);
+        if (Math.abs(p.vx) < 0.15) p.vx = 0;
+        p.crouching = p.grounded && keys.down;
+      }
+    }
+
+    p.prevX = p.x;
+    p.x += p.vx * dt;
+    p.x = Math.max(40, Math.min(run.length - 120, p.x));
+    p.onWall = 0;
+
+    const pHalfW = 15;
+    const pHeight = (p.slideTimer > 0 || p.crouching) ? 32 : 56;
+
+    for (const b of run.blocks) {
+      const pRect = { x: p.x - pHalfW, y: p.y - pHeight + 2, w: pHalfW * 2, h: pHeight - 4 };
+      if (boxesOverlap(pRect, b)) {
+        if (p.prevX + pHalfW <= b.x + 6) {
+          p.x = b.x - pHalfW;
+          p.vx = 0;
+          if (!p.grounded) p.onWall = 1;
+        } else if (p.prevX - pHalfW >= b.x + b.w - 6) {
+          p.x = b.x + b.w + pHalfW;
+          p.vx = 0;
+          if (!p.grounded) p.onWall = -1;
+        }
+      }
+    }
+
+    p.prevY = p.y;
+    if (p.dashTimer <= 0) {
+      const grav = w.grav + ((run.worldIdx === 3 && run.windPhase > 0.45) ? 0.1 : 0);
+      p.vy += grav * dt;
+
+      if (p.onWall !== 0 && p.vy > 2.4 && !p.slamming) {
+        p.vy = 2.4;
+        if (((run.anim * 4) | 0) % 2 === 0) {
+          spawnParticles(p.x + p.onWall * 14, p.y - 24, '#e5e7eb', 1, 2);
+        }
+      }
+      p.y += p.vy * dt;
+    }
+
+    if (p.grounded) p.coyoteTimer = 7;
+    else p.coyoteTimer = Math.max(0, p.coyoteTimer - dt);
+
+    p.grounded = false;
+
+    if (p.y >= GROUND_Y) {
+      p.y = GROUND_Y;
+      if (p.slamming) {
+        triggerLandingSlamShockwave(p.x, GROUND_Y);
+        p.slamming = false;
+      }
+      p.vy = 0;
+      p.grounded = true;
+      p.usedDoubleJump = false;
+    }
+
+    for (const b of run.blocks) {
+      const pRect = { x: p.x - pHalfW + 2, y: p.y - pHeight, w: (pHalfW - 2) * 2, h: pHeight };
+      if (boxesOverlap(pRect, b)) {
+        if (p.vy >= 0 && p.prevY <= b.y + 12) {
+          p.y = b.y;
+          if (p.slamming) {
+            triggerLandingSlamShockwave(p.x, b.y);
+            p.slamming = false;
+          }
+          p.vy = 0;
+          p.grounded = true;
+          p.usedDoubleJump = false;
+        } else if (p.vy < 0 && p.prevY - pHeight >= b.y + b.h - 12) {
+          p.y = b.y + b.h + pHeight;
+          p.vy = 0;
+        }
+      }
+    }
+
+    if (p.jumpBuffer > 0) {
+      p.jumpBuffer = Math.max(0, p.jumpBuffer - dt);
+      if (p.grounded) {
+        p.jumpBuffer = 0;
+        triggerJump();
+      }
+    }
+
+    run.anim += (0.04 + Math.abs(p.vx) * 0.032) * dt;
+    run.inQuicksand = false;
+
+    const curHeight = (p.slideTimer > 0 || p.crouching) ? 32 : 56;
+    const playerBox = { x: p.x - 14, y: p.y - curHeight + 3, w: 28, h: curHeight - 5 };
+    const attackBox = p.actionTimer > 0 ? {
+      x: p.facing > 0 ? p.x + 8 : p.x - 58,
+      y: p.y - 54,
+      w: 50,
+      h: 48
+    } : null;
+
+    for (const it of run.items) {
+      if (it.smashed) continue;
+      if (it.squish > 0) it.squish = Math.max(0, it.squish - dt);
+
+      if (it.type === 'snowball' && Math.abs(it.x - p.x) < W * 0.7) {
+        it.offsetX -= 2.2 * dt;
+      }
+      if (it.type === 'icicle' && Math.abs((it.x) - p.x) < 220) {
+        it.dropY = Math.min(GROUND_Y - 96, it.dropY + 8.5 * dt);
+      }
+
+      const wx = it.x + (it.offsetX || 0);
+
+      if (it.type === 'frag') {
+        if (!it.collected && boxesOverlap(playerBox, { x: wx - 16, y: it.y - 18, w: 32, h: 36 })) {
+          it.collected = true;
+          run.frag++;
+          state.ach.first = true;
+          AudioSys.sfxGem();
+          spawnParticles(wx, it.y, '#e879f9', 14);
+        }
+        continue;
+      }
+
+      const box = getObstacleBox(it, wx);
+
+      if (it.type === 'shroom') {
+        if (boxesOverlap(playerBox, box) && p.vy >= 0) {
+          const slamBonus = p.slamming ? -3.5 : 0;
+          p.y = box.y;
+          p.vy = -19.2 + slamBonus;
+          p.grounded = false;
+          p.slamming = false;
+          p.usedDoubleJump = false;
+          it.squish = 14;
+          AudioSys.sfxBounce();
+          spawnParticles(wx + 20, box.y, '#ff5252', 12);
+        }
+        continue;
+      }
+
+      if (it.type === 'pad') {
+        if (boxesOverlap(playerBox, box) && p.grounded) {
+          if (run.boostTimer <= 15) AudioSys.sfxBoost();
+          run.boostTimer = 85;
+          spawnParticles(p.x, GROUND_Y, '#ffd740', 6);
+        }
+        continue;
+      }
+
+      if (it.type === 'sand') {
+        if (boxesOverlap(playerBox, box) && p.grounded) {
+          run.inQuicksand = true;
+        }
+        continue;
+      }
+
+      const cragCharging = (state.char === 'crag' && p.dashTimer > 0);
+      if (box.breakable && ((attackBox && boxesOverlap(attackBox, box)) || (cragCharging && boxesOverlap(playerBox, box)))) {
+        it.smashed = true;
+        AudioSys.sfxSmash();
+        spawnParticles(box.x + box.w / 2, box.y + box.h / 2, state.char === 'gear' ? '#ff9800' : '#c084fc', 14, 8);
+        continue;
+      }
+
+      const gearDashing = (state.char === 'gear' && p.dashTimer > 0);
+      if (run.invuln <= 0 && !gearDashing && boxesOverlap(playerBox, box)) {
+        run.hp--;
+        run.tookDamage = true;
+        run.invuln = exp.invFrames;
+        p.vx = -p.facing * 5.5;
+        p.vy = -7.5;
+        p.grounded = false;
+        p.slamming = false;
+        AudioSys.sfxHurt();
+        spawnParticles(p.x, p.y - 28, '#ff4d6d', 14);
+        if (run.hp <= 0) {
+          handleStageFail();
+          return;
+        }
+      }
+    }
+
+    for (let i = run.particles.length - 1; i >= 0; i--) {
+      const pt = run.particles[i];
+      pt.x += pt.vx * dt;
+      pt.y += pt.vy * dt;
+      pt.vy += 0.25 * dt;
+      pt.life -= dt;
+      if (pt.life <= 0) run.particles.splice(i, 1);
+    }
+
+    for (let i = run.shockwaves.length - 1; i >= 0; i--) {
+      const sw = run.shockwaves[i];
+      sw.radius += (sw.maxRadius - sw.radius) * 0.28 * dt;
+      sw.life -= dt;
+      if (sw.life <= 0) run.shockwaves.splice(i, 1);
+    }
+
+    const targetCam = Math.max(0, Math.min(run.length - W, p.x - W * 0.34 + p.facing * 65));
+    run.camX += (targetCam - run.camX) * Math.min(1, 0.14 * dt);
+
+    if (!run.quizShown && p.x >= run.length * 0.5) {
+      run.quizShown = true;
+      triggerCheckpointQuiz();
+      return;
+    }
+
+    if (Math.abs(p.x - (run.length - 220)) < 38 && Math.abs(p.y - GROUND_Y) < 60) {
+      handleStageFinish();
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 11. WORLD RENDERING (BACKGROUND, BLOCKS, ENTITIES, PLAYER & HUD)
+  // --------------------------------------------------------------------------
+  function drawWorldBackground() {
+    const w = WORLDS[run.worldIdx];
+    const o = run.camX;
+
+    const grad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+    grad.addColorStop(0, w.sky[0]);
+    grad.addColorStop(1, w.sky[1]);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = run.worldIdx === 4 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.6)';
+    for (let i = 0; i < 6; i++) {
+      const cx = ((i * 250 - o * 0.08) % 1300 + 1300) % 1300 - 150;
+      const cy = 44 + (i * 41) % 85;
+      pxRect(ctx, cx, cy, 96, 18, ctx.fillStyle);
+      pxRect(ctx, cx + 18, cy - 12, 54, 14, ctx.fillStyle);
+    }
+
+    const startIdx = Math.floor((o * 0.25) / 160);
+    for (let i = 0; i < 8; i++) {
+      const n = startIdx + i;
+      const x = n * 160 - o * 0.25;
+      const h = 72 + Math.abs(Math.sin(n * 11.7)) * 125;
+      ctx.fillStyle = w.far;
+
+      if (run.worldIdx === 0) {
+        pxRect(ctx, x + 64, GROUND_Y - 58, 12, 58, '#6d4c41');
+        pxRect(ctx, x + 34, GROUND_Y - 58 - h * 0.55, 72, h * 0.55, w.far);
+        pxRect(ctx, x, GROUND_Y - 22, 160, 5, '#a67249');
+        pxRect(ctx, x + 16, GROUND_Y - 28, 7, 28, '#8d5b3c');
+        pxRect(ctx, x + 96, GROUND_Y - 28, 7, 28, '#8d5b3c');
+      } else if (run.worldIdx === 1) {
+        pxRect(ctx, x, GROUND_Y - h, 126, h, w.far);
+        for (let wy = GROUND_Y - h + 14; wy < GROUND_Y - 18; wy += 26) {
+          for (let wx = x + 14; wx < x + 110; wx += 28) {
+            pxRect(ctx, wx, wy, 13, 13, '#ffd740');
+          }
+        }
+        pxRect(ctx, x + 132, GROUND_Y - 64, 18, 38, '#7c3aed');
+      } else if (run.worldIdx === 2) {
+        ctx.beginPath();
+        ctx.moveTo(x - 24, GROUND_Y);
+        ctx.lineTo(x + 70, GROUND_Y - h - 38);
+        ctx.lineTo(x + 164, GROUND_Y);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(x + 70, GROUND_Y - h - 38);
+        ctx.lineTo(x + 44, GROUND_Y - h);
+        ctx.lineTo(x + 96, GROUND_Y - h);
+        ctx.fill();
+      } else if (run.worldIdx === 3) {
+        pxRect(ctx, x, GROUND_Y - h * 0.72, 114, h * 0.72, w.far);
+        pxRect(ctx, x + 128, GROUND_Y - 58, 9, 58, '#2e7d32');
+        pxRect(ctx, x + 119, GROUND_Y - 42, 9, 7, '#2e7d32');
+        pxRect(ctx, x + 137, GROUND_Y - 35, 9, 7, '#2e7d32');
+      } else {
+        pxRect(ctx, x + 36, GROUND_Y - h, 42, h, w.far);
+        pxRect(ctx, x + 28, GROUND_Y - h - 10, 58, 10, '#ede7f6');
+        pxRect(ctx, x + 52, GROUND_Y - h + 14, 10, h - 22, 'rgba(255,215,64,0.5)');
+      }
+    }
+
+    if (run.worldIdx === 0) {
+      for (let i = 0; i < 7; i++) {
+        const bx = ((i * 190 - o * 0.35 + Math.sin(run.anim + i) * 30) % W + W) % W;
+        const by = 290 + Math.sin(run.anim * 2 + i) * 40;
+        pxRect(ctx, bx, by, 5, 5, '#ffd740');
+      }
+    } else if (run.worldIdx === 2) {
+      for (let i = 0; i < 50; i++) {
+        const sx = ((i * 113 - o * 0.6 - run.anim * 25) % W + W) % W;
+        const sy = (i * 61 + run.anim * 45) % H;
+        pxRect(ctx, sx, sy, 3, 3, '#ffffff');
+      }
+    } else if (run.worldIdx === 3 && run.windPhase > 0.45) {
+      for (let i = 0; i < 26; i++) {
+        const sx = ((i * 149 - run.anim * 210) % W + W) % W;
+        const sy = 70 + (i * 43) % 350;
+        pxRect(ctx, sx, sy, 34, 2, 'rgba(255, 224, 163, 0.72)');
+      }
+    }
+
+    pxRect(ctx, 0, GROUND_Y, W, H - GROUND_Y, w.ground);
+    pxRect(ctx, 0, GROUND_Y, W, 10, w.grass);
+    for (let i = 0; i < 14; i++) {
+      const gx = i * 80 - (((o % 80) + 80) % 80);
+      pxRect(ctx, gx, GROUND_Y + 42, 42, 5, w.grass);
+    }
+  }
+
+  function drawWorldEntities() {
+    const o = run.camX;
+
+    for (const b of run.blocks) {
+      const sx = b.x - o;
+      if (sx + b.w < -60 || sx > W + 60) continue;
+
+      if (b.style === 'ruin') {
+        pxRect(ctx, sx, b.y, b.w, b.h, '#6b6385');
+        pxRect(ctx, sx, b.y, b.w, 6, '#4caf50');
+        pxRect(ctx, sx + 4, b.y + 8, b.w - 8, 4, '#948da8');
+      } else if (b.style === 'city') {
+        pxRect(ctx, sx, b.y, b.w, b.h, '#4c1d95');
+        pxRect(ctx, sx, b.y, b.w, 6, '#ffd740');
+      } else if (b.style === 'ice') {
+        pxRect(ctx, sx, b.y, b.w, b.h, '#7dd3fc');
+        pxRect(ctx, sx, b.y, b.w, 6, '#ffffff');
+      } else if (b.style === 'desert') {
+        pxRect(ctx, sx, b.y, b.w, b.h, '#c8693a');
+        pxRect(ctx, sx, b.y, b.w, 6, '#f59e0b');
+      } else {
+        pxRect(ctx, sx, b.y, b.w, b.h, '#7e57c2');
+        pxRect(ctx, sx, b.y, b.w, 5, '#ede7f6');
+        pxRect(ctx, sx + 8, b.y + 9, b.w - 16, 3, '#ffd740');
+      }
+    }
+
+    const flagX = run.length * 0.5 - o;
+    if (flagX > -80 && flagX < W + 80) {
+      pxRect(ctx, flagX, GROUND_Y - 108, 5, 108, '#e5e7eb');
+      pxRect(ctx, flagX + 5, GROUND_Y - 108, 42, 26, '#ffd740');
+      ctx.fillStyle = '#1e1042';
+      ctx.font = 'bold 14px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('QUIZ', flagX + 26, GROUND_Y - 90);
+    }
+
+    const endX = run.length - 220 - o;
+    if (endX > -120 && endX < W + 120) {
+      pxRect(ctx, endX - 28, GROUND_Y - 26, 56, 26, '#8b5cf6');
+      pxRect(ctx, endX - 34, GROUND_Y - 32, 68, 8, '#c4b5fd');
+      drawGoldenRelic(ctx, endX, GROUND_Y - 62, run.anim, 1.15);
+    }
+
+    for (const it of run.items) {
+      if (it.smashed) continue;
+      const wx = it.x + (it.offsetX || 0);
+      const sx = wx - o;
+      if (sx < -220 || sx > W + 90) continue;
+
+      if (it.type === 'frag') {
+        if (!it.collected) drawCrystalFragment(ctx, sx, it.y, run.anim);
+        continue;
+      }
+
+      const r = getObstacleBox(it, sx);
+
+      switch (it.type) {
+        case 'shroom': {
+          const sq = it.squish > 0 ? 7 : 0;
+          pxRect(ctx, r.x + 14, r.y + 12 + sq, 16, 16 - sq, '#f5e6c8');
+          pxRect(ctx, r.x, r.y + sq, r.w, 15, '#ff3d5a');
+          pxRect(ctx, r.x + 7, r.y + 3 + sq, 7, 6, '#ffffff');
+          pxRect(ctx, r.x + 28, r.y + 4 + sq, 7, 5, '#ffffff');
+          break;
+        }
+        case 'hurdle':
+          pxRect(ctx, r.x + 3, r.y, 6, r.h, '#78350f');
+          pxRect(ctx, r.x + 23, r.y, 6, r.h, '#78350f');
+          pxRect(ctx, r.x, r.y + 6, r.w, 9, '#f59e0b');
+          pxRect(ctx, r.x, r.y + 24, r.w, 9, '#f59e0b');
+          break;
+        case 'pad':
+          pxRect(ctx, r.x, r.y, r.w, r.h, '#ff9800');
+          pxRect(ctx, r.x + 8, r.y + 2, 14, 4, ((run.anim * 4) | 0) % 2 ? '#ffffff' : '#ffd740');
+          pxRect(ctx, r.x + 28, r.y + 2, 14, 4, ((run.anim * 4) | 0) % 2 ? '#ffd740' : '#ffffff');
+          pxRect(ctx, r.x + 48, r.y + 2, 12, 4, '#ffffff');
+          break;
+        case 'cone':
+          pxRect(ctx, r.x + 4, r.y, r.w - 8, r.h, '#ff6d00');
+          pxRect(ctx, r.x + 6, r.y + 10, r.w - 12, 7, '#ffffff');
+          pxRect(ctx, r.x + 2, r.y + 25, r.w - 4, 7, '#ffffff');
+          break;
+        case 'drone':
+          pxRect(ctx, r.x + 6, r.y + 7, r.w - 12, 15, '#334155');
+          pxRect(ctx, r.x, r.y + 2, r.w, 4, '#93c5fd');
+          pxRect(ctx, r.x + 20, r.y + 11, 8, 6, ((run.anim * 5) | 0) % 2 ? '#ef4444' : '#00e5ff');
+          break;
+        case 'banner':
+          pxRect(ctx, r.x + 12, 0, 4, r.y, '#4c1d95');
+          pxRect(ctx, r.x + r.w - 16, 0, 4, r.y, '#4c1d95');
+          pxRect(ctx, r.x, r.y, r.w, r.h, '#6d28d9');
+          pxRect(ctx, r.x + 5, r.y + 5, r.w - 10, 7, '#ffd740');
+          break;
+        case 'snowball':
+          ctx.fillStyle = '#e0f2fe';
+          ctx.beginPath(); ctx.arc(r.x + 19, r.y + 19, 19, 0, Math.PI * 2); ctx.fill();
+          pxRect(ctx, r.x + 11 + Math.cos(run.anim * 3) * 6, r.y + 13 + Math.sin(run.anim * 3) * 6, 7, 7, '#7dd3fc');
+          break;
+        case 'icicle':
+          pxRect(ctx, r.x + 14, 0, 6, r.y, '#7dd3fc');
+          ctx.fillStyle = '#bae6fd';
+          ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x + r.w, r.y); ctx.lineTo(r.x + r.w / 2, r.y + r.h); ctx.fill();
+          break;
+        case 'icespike':
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath(); ctx.moveTo(r.x, r.y + r.h); ctx.lineTo(r.x + 11, r.y); ctx.lineTo(r.x + 22, r.y + r.h); ctx.fill();
+          ctx.fillStyle = '#bae6fd';
+          ctx.beginPath(); ctx.moveTo(r.x + 15, r.y + r.h); ctx.lineTo(r.x + 25, r.y + 8); ctx.lineTo(r.x + 36, r.y + r.h); ctx.fill();
+          break;
+        case 'sand':
+          pxRect(ctx, r.x, r.y, r.w, r.h, '#a16227');
+          pxRect(ctx, r.x + 12, r.y + 3, r.w - 24, 7, '#78350f');
+          break;
+        case 'cactus':
+          pxRect(ctx, r.x + 11, r.y, 10, r.h, '#2e7d32');
+          pxRect(ctx, r.x + 2, r.y + 20, 9, 6, '#2e7d32');
+          pxRect(ctx, r.x + 2, r.y + 10, 5, 14, '#2e7d32');
+          pxRect(ctx, r.x + 21, r.y + 28, 9, 6, '#2e7d32');
+          pxRect(ctx, r.x + 25, r.y + 16, 5, 16, '#2e7d32');
+          break;
+        case 'tumbleweed':
+          ctx.strokeStyle = '#92400e';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(r.x + 16, r.y + 16, 14, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(r.x + 16, r.y + 16, 7, 0, Math.PI * 2); ctx.stroke();
+          break;
+        case 'orb':
+          ctx.fillStyle = '#ff4081';
+          ctx.beginPath(); ctx.arc(r.x + 16, r.y + 16, 16, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#ffd740';
+          ctx.beginPath(); ctx.arc(r.x + 16, r.y + 16, 8, 0, Math.PI * 2); ctx.fill();
+          break;
+        case 'laser':
+          pxRect(ctx, r.x + 8, 0, 4, r.y, '#4c1d95');
+          pxRect(ctx, r.x + r.w - 12, 0, 4, r.y, '#4c1d95');
+          pxRect(ctx, r.x, r.y + 18, r.w, 13, ((run.anim * 6) | 0) % 2 ? '#ff4081' : '#ffd740');
+          break;
+        default:
+          pxRect(ctx, r.x, r.y, r.w, r.h, '#6b7280');
+          pxRect(ctx, r.x + 4, r.y + 4, r.w - 8, 6, '#9ca3af');
+      }
+    }
+
+    for (const sw of run.shockwaves) {
+      ctx.strokeStyle = sw.color;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.ellipse(sw.x - o, sw.y - 4, sw.radius, 12, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    const p = run.player;
+    const screenPlayerX = p.x - o;
+    if (!(run.invuln > 0 && ((run.invuln / 5) | 0) % 2 === 1)) {
+      drawExplorer(ctx, state.char, screenPlayerX, p.y + (run.inQuicksand ? 6 : 0), run.anim, {
+        sliding: p.slideTimer > 0,
+        crouching: p.crouching,
+        dashing: p.dashTimer > 0,
+        slamming: p.slamming,
+        wallSliding: p.onWall !== 0,
+        actionTimer: p.actionTimer,
+        airBoostFlash: p.airBoostFlash,
+        scale: 1.05,
+        facing: p.facing,
+        moving: Math.abs(p.vx) > 0.4,
+        torchLit: true
+      });
+    }
+
+    for (const pt of run.particles) {
+      pxRect(ctx, pt.x - o, pt.y, 5, 5, pt.color);
+    }
+  }
+
+  function drawRunnerHUD() {
+    const w = WORLDS[run.worldIdx];
+    const exp = EXPLORERS[state.char];
+    const p = run.player;
+
+    pxRect(ctx, 0, 0, W, 42, 'rgba(15, 8, 36, 0.84)');
+    ctx.font = 'bold 16px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffd740';
+    ctx.fillText(`${run.worldIdx + 1}/5 ${w.name}`, 14, 26);
+
+    for (let i = 0; i < exp.hp; i++) {
+      pxRect(ctx, 215 + i * 20, 13, 15, 15, i < run.hp ? '#ff4d6d' : '#4b2836');
+    }
+
+    ctx.fillStyle = '#e879f9';
+    ctx.fillText(`◆ ${run.frag}/5`, 312, 26);
+
+    const dashReady = Math.max(0, 1 - p.dashCooldown / 48);
+    ctx.fillStyle = '#93c5fd';
+    ctx.fillText('DASH [E]', 392, 26);
+    pxRect(ctx, 476, 15, 54, 12, 'rgba(255,255,255,0.2)');
+    pxRect(ctx, 476, 15, 54 * dashReady, 12, dashReady >= 1 ? '#00e5ff' : '#64748b');
+
+    const progress = Math.min(1, p.x / (run.length - 220));
+    pxRect(ctx, 545, 15, 140, 12, 'rgba(255,255,255,0.2)');
+    pxRect(ctx, 545, 15, 140 * progress, 12, '#ffd740');
+
+    for (let i = 0; i < 5; i++) {
+      ctx.fillStyle = state.relics.includes(i) ? '#ffd740' : 'rgba(255,255,255,0.22)';
+      ctx.beginPath();
+      ctx.arc(712 + i * 22, 21, 7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    let status = '';
+    if (run.boostTimer > 0) status = '⚡ TURBO BOOST!';
+    else if (run.finalSprint) status = '🔥 FINAL SPRINT!';
+    else if (run.inQuicksand) status = '⏳ QUICKSAND!';
+    else if (run.worldIdx === 3 && run.windPhase > 0.45) status = '💨 SANDSTORM WIND!';
+    else if (run.worldIdx === 2 && p.slideTimer > 0) status = '❄️ ICE SLIDE!';
+    else if (run.worldIdx === 4) status = '☁️ LOW GRAVITY';
+
+    if (status) {
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#ffd740';
+      ctx.fillText(status, W - 18, 66);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 12. KEYBOARD & POINTER (M1) INPUT HANDLERS
+  // --------------------------------------------------------------------------
+  window.addEventListener('keydown', (e) => {
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+      e.preventDefault();
+    }
+
+    if (state.screen === 'splash' || state.screen === 'cutscene' || state.screen === 'ending') {
+      if (!e.repeat && (e.code === 'Space' || e.code === 'Enter')) advanceCutscene();
+      if (!e.repeat && e.code === 'Escape') {
+        if (state.screen === 'ending') showEndingCreditsModal();
+        else openMainMenu();
+      }
+      return;
+    }
+
+    if (state.screen === 'map') {
+      if (!e.repeat) {
+        if (e.code === 'ArrowRight' || e.code === 'KeyD') selectIslandOnMap((state.selectedWorld + 1) % 5);
+        else if (e.code === 'ArrowLeft' || e.code === 'KeyA') selectIslandOnMap((state.selectedWorld + 4) % 5);
+        else if ((e.code === 'Enter' || e.code === 'Space') && state.selectedWorld <= state.unlockedWorld) {
+          prepareStage(state.selectedWorld);
+        }
+      }
+      return;
+    }
+
+    if (state.screen === 'play') {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+      if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+        if (!keys.down) triggerDownAction();
+        keys.down = true;
+      }
+      if (!e.repeat) {
+        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+          keys.jumpHeld = true;
+          triggerJump();
+        }
+        // Dash bound to E (plus Shift / J / Z fallbacks)
+        if (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyJ' || e.code === 'KeyZ') {
+          triggerDash();
+        }
+        // Special Action fallback keys (M1 is primary via pointerdown)
+        if (e.code === 'KeyK' || e.code === 'KeyX') {
+          triggerSpecialAction();
+        }
+        if (e.code === 'Escape' || e.code === 'KeyP') {
+          pauseRun();
+        }
+      }
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+      keys.jumpHeld = false;
+      if (state.screen === 'play') releaseJump();
+    }
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const lx = ((e.clientX - rect.left) / rect.width) * W;
+    const ly = ((e.clientY - rect.top) / rect.height) * H;
+
+    if (state.screen === 'splash' || state.screen === 'cutscene' || state.screen === 'ending') {
+      advanceCutscene();
+      return;
+    }
+
+    if (state.screen === 'map') {
+      for (let i = 0; i < WORLDS.length; i++) {
+        const { x, y } = WORLDS[i].mapPos;
+        if (Math.hypot(lx - x, ly - y) < 76) {
+          selectIslandOnMap(i);
+          return;
+        }
+      }
+      return;
+    }
+
+    // M1 (Left Mouse Button / Primary Pointer) triggers Special Action during gameplay
+    if (state.screen === 'play' && e.button === 0) {
+      triggerSpecialAction();
+    }
+  });
+
+  // --------------------------------------------------------------------------
+  // 13. MAIN 60FPS ANIMATION LOOP
+  // --------------------------------------------------------------------------
+  let lastTimestamp = 0;
+
+  function frame(ts) {
+    const dtSec = Math.min((ts - lastTimestamp) / 1000, 0.05) || 0.016;
+    const dtFactor = dtSec * 60;
+    lastTimestamp = ts;
+
+    AudioSys.updateBgm(dtSec);
+
+    if (state.screen === 'splash') {
+      drawSplash(dtSec);
+    } else if (state.screen === 'cutscene') {
+      drawCutscene(dtSec);
+    } else if (state.screen === 'ending') {
+      drawEnding(dtSec);
+    } else if (state.screen === 'menu') {
+      run.camX += 1.6 * dtFactor;
+      run.anim += 0.14 * dtFactor;
+      drawWorldBackground();
+      drawExplorer(ctx, state.char, 190, GROUND_Y, run.anim, { scale: 1.15, facing: 1, moving: true, torchLit: true });
+    } else if (state.screen === 'map') {
+      drawWorldMap(dtSec);
+    } else if (state.screen === 'play') {
+      updateGameplay(dtFactor);
+      drawWorldBackground();
+      drawWorldEntities();
+      drawRunnerHUD();
+    } else if (state.screen === 'modal') {
+      drawWorldBackground();
+      drawWorldEntities();
+      drawRunnerHUD();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  window.__game = {
+    skipToMenu: () => { AudioSys.sfxClick(); openMainMenu(); },
+    advanceCutscene,
+    replayIntro: () => { AudioSys.sfxClick(); startSplash(); },
+    startEnding,
+    showEndingCreditsModal,
+    openMainMenu,
+    startStory,
+    openWorldMap,
+    openHowToPlay,
+    openExplorers,
+    selectChar,
+    openAchievements,
+    openOptions,
+    toggleSfx,
+    toggleMusic,
+    toggleTouch,
+    toggleLang,
+    resetProgress,
+    prepareStage,
+    launchRun,
+    resumeRun,
+    pauseRun,
+    triggerCheckpointQuiz,
+    answerQuiz
+  };
+
+  startSplash();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
